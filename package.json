@@ -9,7 +9,10 @@
   "scripts": {
     "emulators": "firebase emulators:start --project demo-mua-putri",
     "test:unit": "node --test \"tests/unit/**/*.test.js\"",
-    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-mua-putri \"node --test --test-concurrency=1 tests/security/*.test.js\""
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-mua-putri \"node --test --test-concurrency=1 tests/security/*.test.js\"",
+    "start": "node backend/src/server.js",
+    "test:integration": "firebase emulators:exec --only auth,firestore --project demo-mua-putri \"node --test --test-concurrency=1 tests/integration/*.test.js\"",
+    "test": "npm run test:unit && npm run test:rules && npm run test:integration"
   },
   "dependencies": {
     "express": "^5.3.0",
