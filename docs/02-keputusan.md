@@ -24,3 +24,10 @@
    lewat delta (tidak boleh negatif). `variants` ditunda sampai createOrder.
 10. Handler menolak field yang tidak dikenal; gambar hanya boleh dari folder tenant sendiri.
 11. deleteProduct ditunda sampai ada cek referensi ke pesanan.
+12. Kategori portfolio memakai `serviceCategories` (satu daftar jenis layanan: bridal, party, dst).
+13. Portfolio: publish wajib `consentConfirmed` (konfirmasi admin atas izin foto model),
+    before/after berpasangan. Mencabut persetujuan harus setelah unpublish.
+    `modelId` & koleksi `models` ditunda sampai ada manajemen model; `reorderPortfolio`
+    ditunda (urutan lewat field `sortOrder` di updatePortfolio).
+14. Kategori memakai slug nama sebagai ID dokumen (nama kembar ditolak).
+15. deleteService / deletePortfolio ditunda (butuh cek referensi booking & media).

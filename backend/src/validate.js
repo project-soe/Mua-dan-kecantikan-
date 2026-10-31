@@ -77,3 +77,7 @@ export function slugify(s) {
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
   return out || 'item';
 }
+
+export function optBool(v, name) {
+  return v === undefined ? undefined : bool(v, name);
+}
