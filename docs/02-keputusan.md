@@ -18,3 +18,9 @@
    consentStatus (models).
 6. Penyimpanan gambar lewat adapter. Pilihan produksi (gratis) diputuskan di Phase 6.
 7. Matriks akses: peran Admin ditambahkan (operasional, tanpa akses finansial penuh).
+8. Keunikan SKU/slug dijaga dokumen `tenants/{id}/uniqueKeys/{kunci}` yang dibuat dalam transaksi
+   (koleksi tambahan di luar spesifikasi; tak bisa diakses klien). Dipakai ulang untuk kode voucher.
+9. Produk selalu dibuat draft; publish lewat publishProduct (wajib coverImage). Stok hanya berubah
+   lewat delta (tidak boleh negatif). `variants` ditunda sampai createOrder.
+10. Handler menolak field yang tidak dikenal; gambar hanya boleh dari folder tenant sendiri.
+11. deleteProduct ditunda sampai ada cek referensi ke pesanan.

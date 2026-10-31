@@ -59,3 +59,9 @@ export const ERROR_CODES = Object.freeze([
   'out-of-stock', 'booking-conflict', 'payment-mismatch', 'shipping-unavailable',
   'rate-limited', 'internal',
 ]);
+
+export const ROLE_GROUPS = Object.freeze({
+  ADMIN: ['owner', 'admin'],
+  CONTENT: ['owner', 'admin', 'content_manager'],
+  FINANCE: ['owner', 'finance_manager'],
+});
