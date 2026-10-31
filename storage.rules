@@ -1,6 +1,76 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} { allow read, write: if false; }
+
+    function signedIn() { return request.auth != null; }
+    function verified() { return signedIn() && request.auth.token.email_verified == true; }
+    function mPath(t) {
+      return /databases/(default)/documents/tenants/$(t)/memberships/$(request.auth.uid);
+    }
+    function isActiveMember(t) {
+      return verified() && firestore.exists(mPath(t))
+        && firestore.get(mPath(t)).data.status == 'active';
+    }
+    function hasRole(t, roles) {
+      return isActiveMember(t) && firestore.get(mPath(t)).data.role in roles;
+    }
+    function canWriteMedia(t) { return hasRole(t, ['owner', 'admin', 'content_manager']); }
+    function isImage() { return request.resource.contentType.matches('image/(jpeg|png|webp|avif)'); }
+    function maxMb(mb) { return request.resource.size <= mb * 1024 * 1024; }
+
+    match /tenants/{t} {
+      // Publik
+      match /branding/{file=**} {
+        allow read: if true;
+        allow create, update: if canWriteMedia(t) && isImage() && maxMb(2);
+      }
+      match /services/{file=**} {
+        allow read: if true;
+        allow create, update: if canWriteMedia(t) && isImage() && maxMb(8);
+      }
+      match /promotions/{file=**} {
+        allow read: if true;
+        allow create, update: if canWriteMedia(t) && isImage() && maxMb(8);
+      }
+      match /portfolio/thumbnails/{file=**} {
+        allow read: if true;
+        allow create, update: if canWriteMedia(t) && isImage() && maxMb(12);
+      }
+      match /portfolio/optimized/{file=**} {
+        allow read: if true;
+        allow create, update: if canWriteMedia(t) && isImage() && maxMb(12);
+      }
+      match /products/thumbnails/{file=**} {
+        allow read: if true;
+        allow create, update: if canWriteMedia(t) && isImage() && maxMb(8);
+      }
+      match /products/optimized/{file=**} {
+        allow read: if true;
+        allow create, update: if canWriteMedia(t) && isImage() && maxMb(8);
+      }
+
+      // Original resolusi tinggi: hanya staf
+      match /portfolio/originals/{file=**} {
+        allow read: if canWriteMedia(t);
+        allow create, update: if canWriteMedia(t) && isImage() && maxMb(12);
+      }
+      match /products/originals/{file=**} {
+        allow read: if canWriteMedia(t);
+        allow create, update: if canWriteMedia(t) && isImage() && maxMb(8);
+      }
+
+      // Privat: bukti bayar (tidak bisa ditimpa)
+      match /payment-proofs/{uid}/{file=**} {
+        allow read: if signedIn()
+          && (request.auth.uid == uid || hasRole(t, ['owner', 'finance_manager']));
+        allow create: if signedIn() && request.auth.uid == uid && isImage() && maxMb(5) && resource == null;
+      }
+      match /customer-uploads/{uid}/{file=**} {
+        allow read: if signedIn()
+          && (request.auth.uid == uid || hasRole(t, ['owner', 'admin']));
+        allow create: if signedIn() && request.auth.uid == uid && isImage() && maxMb(5) && resource == null;
+      }
+    }
+    // Selain itu: default deny (termasuk semua delete dari klien)
   }
 }
