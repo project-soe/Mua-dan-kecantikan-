@@ -3,3 +3,4 @@ node_modules/
 *.log
 .firebase/
 serviceAccountKey*.json
+token-github.txt
