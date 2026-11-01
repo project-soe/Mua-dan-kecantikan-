@@ -31,3 +31,16 @@
     ditunda (urutan lewat field `sortOrder` di updatePortfolio).
 14. Kategori memakai slug nama sebagai ID dokumen (nama kembar ditolak).
 15. deleteService / deletePortfolio ditunda (butuh cek referensi booking & media).
+16. Booking: slot ditahan di `bookingSlots/{tanggal_HHMM}` per 15 menit; field `holds`
+    {bookingId: kedaluwarsaMs|null}. Kapasitas (booking bersamaan) per tenant di
+    settings/businessHours. Blok tahan = durasi + waktu persiapan, dibulatkan ke 15 menit.
+17. Kedaluwarsa "lazy": tahanan yang lewat waktu otomatis dianggap kosong saat cek/buat booking.
+    `expireStaleBookings` hanya menyinkronkan status; perlu dipanggil berkala (cron) di Phase 6.
+18. Pelanggan cukup login Firebase (anonymous boleh). Maksimal 3 booking menunggu per pelanggan.
+    Booking baru: `awaiting_payment` bila ada deposit, `pending` bila deposit 0.
+19. Saat bukti bayar dikirim (Phase 4 pembayaran) tahanan harus dijadikan permanen (null)
+    agar tidak kedaluwarsa selama verifikasi. confirmBooking juga memermanenkan tahanan.
+20. Pembatalan: pelanggan tidak bisa membatalkan booking terkonfirmasi di dalam
+    `cancelCutoffHours`; staf selalu bisa. Refund belum diproses; ditandai `refundReview`.
+21. Penomoran booking `BK-000001` lewat counters/bookings (tidak terbaca klien).
+22. Catatan skala: pencarian jam kosong memakai satu query per tanggal; memadai untuk 1 tenant kecil.

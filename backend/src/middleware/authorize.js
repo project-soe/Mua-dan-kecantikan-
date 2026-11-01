@@ -48,3 +48,12 @@ export function requireSuperAdmin(db) {
     } catch (e) { next(e); }
   };
 }
+
+export function requireActiveTenant() {
+  return (req, res, next) => {
+    if (req.tenant.status === 'active') return next();
+    next(req.tenant.status === 'suspended'
+      ? new AppError('tenant-suspended', 'Tenant ditangguhkan')
+      : new AppError('tenant-not-found', 'Tenant tidak tersedia'));
+  };
+}
