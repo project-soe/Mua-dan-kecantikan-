@@ -1,5 +1,6 @@
 import { db, collection, getDocs, query, where, limit } from './firebase.js';
-import { resolveTenant } from './tenant.js';
+import { resolveTenant, diag, tenantHref } from './tenant.js';
+import { isLocal } from './env.js';
 import { applyTheme } from './theme.js';
 import { h } from './dom.js';
 import { rupiah, formatDuration } from './format.js';
@@ -33,7 +34,9 @@ function serviceCard(s) {
       h('h3', { class: 'card__title', text: s.name }),
       s.description ? h('p', { class: 'card__text', text: s.description }) : null,
       h('p', { class: 'meta', text: formatDuration(s.durationMinutes) }),
-      h('p', { class: 'price', text: rupiah(s.price) })));
+      h('p', { class: 'price', text: rupiah(s.price) }),
+      s.bookingEnabled === false ? null
+        : h('a', { class: 'btn btn--ghost', href: tenantHref(`/booking/?service=${encodeURIComponent(s.id)}`), text: 'Booking' })));
 }
 
 function productCard(p) {
@@ -58,7 +61,8 @@ function renderHero(tenant) {
       h('h1', { text: tenant.brandName }),
       tenant.description ? h('p', { class: 'hero__lead', text: tenant.description }) : null,
       h('div', { class: 'hero__actions' },
-        h('a', { class: 'btn', href: '#layanan', text: 'Lihat layanan' }),
+        h('a', { class: 'btn', href: tenantHref('/booking/'), text: 'Booking sekarang' }),
+        h('a', { class: 'btn btn--ghost', href: '#layanan', text: 'Lihat layanan' }),
         h('a', { class: 'btn btn--ghost', href: '#produk', text: 'Lihat produk' }))),
     h('div', { class: 'hero__art reveal', 'aria-hidden': 'true', text: [...tenant.brandName][0]?.toUpperCase() ?? '' }));
 }
@@ -69,7 +73,11 @@ async function fillSection(tenant, { name, gridId, sectionId, max, render, sort,
     let items = await loadPublished(tenant.id, name, max);
     if (sort) items = items.sort(sort);
     if (!items.length) {
-      if (hideWhenEmpty) { $(sectionId).hidden = true; document.querySelector(`.nav a[href="#${sectionId}"]`)?.remove(); return; }
+      if (hideWhenEmpty) {
+        $(sectionId).hidden = true;
+        document.querySelector(`.nav a[href$="#${sectionId}"]`)?.remove();
+        return;
+      }
       grid.replaceChildren(h('p', { class: 'empty', text: emptyText }));
     } else {
       grid.replaceChildren(...items.map(render));
@@ -94,8 +102,14 @@ function observeReveals() {
 async function main() {
   let tenant;
   try { tenant = await resolveTenant(); }
-  catch (e) { console.error(e); return fatal('Tidak dapat memuat situs', 'Data belum dapat dimuat. Periksa koneksi lalu muat ulang halaman.'); }
-  if (!tenant) return fatal('Situs tidak ditemukan', 'Alamat ini belum terhubung ke situs mana pun.');
+  catch (e) {
+    console.error(e);
+    return fatal('Tidak dapat memuat situs', 'Data belum dapat dimuat. Periksa koneksi lalu muat ulang halaman.');
+  }
+  if (!tenant) {
+    return fatal('Situs tidak ditemukan',
+      'Alamat ini belum terhubung ke situs mana pun.' + (isLocal && diag.reason ? ` [dev: ${diag.reason}]` : ''));
+  }
 
   applyTheme(tenant.theme);
   document.title = tenant.tagline ? `${tenant.brandName} — ${tenant.tagline}` : tenant.brandName;
@@ -105,7 +119,8 @@ async function main() {
   renderFooter(tenant);
 
   await Promise.all([
-    fillSection(tenant, { name: 'services', gridId: 'layanan-grid', sectionId: 'layanan', max: 6, render: serviceCard, emptyText: 'Belum ada layanan yang dipublikasikan.' }),
+    fillSection(tenant, { name: 'services', gridId: 'layanan-grid', sectionId: 'layanan', max: 6, render: serviceCard,
+      emptyText: 'Belum ada layanan yang dipublikasikan.' }),
     fillSection(tenant, { name: 'products', gridId: 'produk-grid', sectionId: 'produk', max: 8, render: productCard,
       sort: (a, b) => Number((b.stock ?? 0) > 0) - Number((a.stock ?? 0) > 0), emptyText: 'Belum ada produk yang dipublikasikan.' }),
     fillSection(tenant, { name: 'portfolio', gridId: 'portfolio-grid', sectionId: 'portfolio', max: 6, render: portfolioCard,

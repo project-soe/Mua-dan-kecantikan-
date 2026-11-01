@@ -2,6 +2,7 @@ import { db, doc, getDoc } from './firebase.js';
 import { isLocal } from './env.js';
 
 const ID_RE = /^[a-z0-9][a-z0-9-]{1,40}$/;
+export const diag = { reason: '' }; // hanya ditampilkan di localhost
 
 // Domain -> tenant. Domain hanya identitas; hak akses tetap diatur Rules/backend.
 // Mengembalikan null bila tenant tidak ditemukan/tidak aktif; melempar bila data gagal dimuat.
@@ -14,15 +15,22 @@ export async function resolveTenant() {
     const domain = location.hostname.toLowerCase().replace(/^www\./, '');
     try {
       const snap = await getDoc(doc(db, 'platformDomains', domain));
-      if (!snap.exists() || snap.data().status !== 'active') return null;
+      if (!snap.exists() || snap.data().status !== 'active') {
+        diag.reason = `domain "${domain}" tidak terdaftar/aktif (parameter ?tenant= tidak terbaca)`;
+        return null;
+      }
       tenantId = snap.data().tenantId;
     } catch (e) {
-      if (e?.code === 'permission-denied') return null; // domain tidak terdaftar/tidak aktif
+      if (e?.code === 'permission-denied') {
+        diag.reason = `domain "${domain}" ditolak Rules (tidak terdaftar). Parameter ?tenant= tidak terbaca`;
+        return null;
+      }
       throw e;
     }
   }
   const pub = await getDoc(doc(db, 'publicTenants', tenantId));
-  if (!pub.exists() || pub.data().status !== 'active') return null;
+  if (!pub.exists()) { diag.reason = `dokumen publicTenants/${tenantId} tidak ada (jalankan npm run seed)`; return null; }
+  if (pub.data().status !== 'active') { diag.reason = `tenant "${tenantId}" berstatus "${pub.data().status}"`; return null; }
   return { id: tenantId, ...pub.data() };
 }
 
