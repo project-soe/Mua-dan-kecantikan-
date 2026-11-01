@@ -13,8 +13,12 @@ import { updateBusinessHours } from './bookings/hours.js';
 import { checkBookingAvailability } from './bookings/availability.js';
 import { createBooking } from './bookings/create.js';
 import { confirmBooking, cancelBooking, expireStaleBookings } from './bookings/manage.js';
+import { updatePaymentSettings } from './payments/settings.js';
+import { getPaymentInstructions } from './payments/instructions.js';
+import { submitPaymentProof } from './payments/submit.js';
+import { verifyPayment } from './payments/verify.js';
 
-export function createApp({ db, auth, clock = Date.now }) {
+export function createApp({ db, auth, clock = Date.now, proofInfo }) {
   const app = express();
   app.disable('x-powered-by');
   app.use(express.json({ limit: '100kb' }));
@@ -47,9 +51,13 @@ export function createApp({ db, auth, clock = Date.now }) {
   staff('updateBusinessHours', ROLE_GROUPS.ADMIN, updateBusinessHours);
   staff('confirmBooking', ROLE_GROUPS.ADMIN, (d) => confirmBooking(d, clock));
   staff('expireStaleBookings', ROLE_GROUPS.ADMIN, (d) => expireStaleBookings(d, clock));
+  staff('updatePaymentSettings', ROLE_GROUPS.FINANCE, updatePaymentSettings);
+  staff('verifyPayment', ROLE_GROUPS.FINANCE, (d) => verifyPayment(d, clock));
 
   customer('checkBookingAvailability', checkBookingAvailability);
   customer('createBooking', createBooking);
+  customer('getPaymentInstructions', getPaymentInstructions);
+  customer('submitPaymentProof', (d, c) => submitPaymentProof(d, c, proofInfo));
   // Pembatalan: pemilik booking atau staf; boleh walau tenant ditangguhkan.
   app.post('/api/cancelBooking', authenticate(auth), loadTenant(db), wrap(cancelBooking(db, clock)));
 

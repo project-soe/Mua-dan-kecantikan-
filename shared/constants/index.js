@@ -65,3 +65,5 @@ export const ROLE_GROUPS = Object.freeze({
   CONTENT: ['owner', 'admin', 'content_manager'],
   FINANCE: ['owner', 'finance_manager'],
 });
+
+export const PAYMENT_METHODS = Object.freeze(['bank_transfer', 'dana', 'ovo', 'gopay', 'shopeepay', 'qris']);

@@ -34,7 +34,7 @@ export function confirmBooking(db, clock) {
       // Jika tahanan sudah hilang (kedaluwarsa & terpangkas), pastikan masih ada kapasitas.
       for (const s of slots.snaps) {
         const holds = s.exists ? s.data().holds ?? {} : {};
-        if (!(bookingId in holds) && activeCount(holds, nowMs) >= capacity) {
+        if (activeCount(holds, nowMs, bookingId) >= capacity) {
           throw new AppError('booking-conflict', 'Jadwal sudah terisi booking lain');
         }
       }

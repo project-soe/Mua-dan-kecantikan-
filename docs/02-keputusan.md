@@ -44,3 +44,15 @@
     `cancelCutoffHours`; staf selalu bisa. Refund belum diproses; ditandai `refundReview`.
 21. Penomoran booking `BK-000001` lewat counters/bookings (tidak terbaca klien).
 22. Catatan skala: pencarian jam kosong memakai satu query per tanggal; memadai untuk 1 tenant kecil.
+23. BUG DIPERBAIKI: confirmBooking menganggap tahanan sah bila ID booking ada di `holds` walau sudah
+    kedaluwarsa, sehingga bisa terjadi double booking. Aturan benar: kapasitas dihitung dari tahanan
+    AKTIF milik booking lain (activeCount(holds, now, bookingId) < capacity).
+24. Pembayaran: tujuan transfer (paymentPublic) hanya dikirim ke pemilik booking yang sedang wajib
+    bayar. updatePaymentSettings wajib login baru-baru ini (15 menit, jam asli server).
+25. Nominal yang diterima: deposit, lunas, atau sisa pelunasan. Satu pengajuan menunggu per booking;
+    satu file bukti hanya sekali pakai; file dicek ada, gambar, <= 5 MB di Storage.
+26. verifyPayment hanya owner/finance_manager (delegasi ke admin lewat permissions ditunda).
+    Verifikasi deposit otomatis mengonfirmasi booking. Tolak -> kembali awaiting_payment dengan
+    tenggat baru. Pembayaran terverifikasi untuk booking batal -> refundReview=true.
+27. Pembayaran pesanan produk (orderId) belum ada; ditolak eksplisit sampai createOrder dibuat.
+28. Penyimpanan QRIS: tenants/{id}/payment-methods/ (publik baca, owner/finance tulis).
