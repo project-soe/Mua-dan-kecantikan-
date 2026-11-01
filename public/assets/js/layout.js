@@ -4,7 +4,7 @@ import { tenantHref } from './tenant.js';
 
 const LINKS = [
   ['/#layanan', 'Layanan'], ['/#produk', 'Produk'], ['/#portfolio', 'Portfolio'],
-  ['/booking/', 'Booking'], ['/#jam', 'Jam Operasional'],
+  ['/booking/', 'Booking'], ['/riwayat/', 'Riwayat'], ['/#jam', 'Jam Operasional'],
 ];
 
 export function renderHeader(tenant) {

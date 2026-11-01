@@ -80,3 +80,9 @@
     di Firebase Console. Konsekuensi: riwayat booking terikat ke perangkat/sesi tamu; akun email opsional menyusul.
 39. Halaman memakai boot bersama (page.js). home.js masih memakai boot sendiri (duplikasi; dirapikan nanti).
 40. Kunci idempotensi dibuat di browser dan dipakai ulang selama isian booking sama.
+45. Halaman Riwayat (/riwayat/): daftar booking dan pesanan milik sesi (where customerId == uid, urut createdAt
+    desc, 30 terbaru). Indeks komposit customerId+createdAt ditambahkan. Bentuk query diuji di Rules.
+46. Riwayat terikat ke sesi tamu (anonymous): hilang bila data browser dihapus/ganti perangkat. Solusi:
+    akun pelanggan opsional (tautkan akun tamu ke email/kata sandi) — langkah berikutnya.
+47. Duplikasi: pembayaran.js masih punya statusText sendiri; status.js adalah versi bersama. Rapikan nanti.
+48. Bagian "Pesanan produk" sudah membaca data sungguhan tetapi belum bisa terisi dari tampilan (checkout belum ada).

@@ -5,6 +5,7 @@ import { rupiah, formatDuration } from './format.js';
 import { call, ApiError } from './api.js';
 import { ensureUser } from './auth.js';
 import { tenantHref } from './tenant.js';
+import { renderPaymentPanel } from './payment.js';
 
 const MODE_LABEL = { studio: 'Di studio', customer_location: 'Di lokasi Anda' };
 const MESSAGES = {
@@ -146,24 +147,71 @@ async function submit(ev) {
 }
 
 function renderResult(r) {
-  const tz = S.tenant.operatingHours?.timezone ?? 'Asia/Jakarta';
-  const when = new Date(r.paymentDeadline).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short', timeZone: tz });
   const needsPay = r.bookingStatus === 'awaiting_payment';
-  $('booking-root').replaceChildren(h('section', { class: 'result', 'aria-labelledby': 'res-title' },
-    h('h2', { id: 'res-title', class: 'card__title', text: 'Booking dibuat' }),
+  const tz = S.tenant.operatingHours?.timezone ?? 'Asia/Jakarta';
+  const deadline = r.paymentDeadline
+    ? new Date(r.paymentDeadline)
+    : null;
+  const when = deadline && !Number.isNaN(deadline.getTime())
+    ? deadline.toLocaleString('id-ID', {
+        dateStyle: 'long',
+        timeStyle: 'short',
+        timeZone: tz,
+      })
+    : '';
+
+  const result = h('section', {
+    class: 'result',
+    'aria-labelledby': 'res-title',
+  },
+    h('h2', {
+      id: 'res-title',
+      class: 'card__title',
+      text: 'Booking dibuat',
+    }),
     h('dl', {},
-      h('dt', { text: 'Nomor booking' }), h('dd', { text: r.bookingNumber }),
-      h('dt', { text: 'Total' }), h('dd', { text: rupiah(r.totalAmount) }),
-      h('dt', { text: 'Deposit' }), h('dd', { text: rupiah(r.depositAmount) }),
-      h('dt', { text: 'Status' }), h('dd', { text: needsPay ? 'Menunggu pembayaran' : 'Menunggu konfirmasi admin' })),
-    h('p', { class: 'notice', text: needsPay
-      ? `Jadwal ditahan sampai ${when}. Simpan nomor booking Anda. Langkah pembayaran (instruksi dan unggah bukti) sedang dibangun dan akan tersedia di halaman berikutnya.`
-      : `Jadwal ditahan sampai ${when} menunggu konfirmasi admin. Simpan nomor booking Anda.` }),
-    h('a', { class: 'btn btn--ghost', href: tenantHref('/booking/'), text: 'Buat booking lain' })));
+      h('dt', { text: 'Nomor booking' }),
+      h('dd', { text: r.bookingNumber }),
+      h('dt', { text: 'Total' }),
+      h('dd', { text: rupiah(r.totalAmount) }),
+      h('dt', { text: 'Deposit' }),
+      h('dd', { text: rupiah(r.depositAmount) }),
+      h('dt', { text: 'Status' }),
+      h('dd', {
+        text: needsPay
+          ? 'Menunggu pembayaran'
+          : 'Menunggu konfirmasi admin',
+      }),
+    ),
+    h('p', {
+      id: 'payment-status',
+      class: 'notice',
+      text: needsPay
+        ? `Jadwal ditahan sampai ${when}. Silakan lanjutkan pembayaran Anda.`
+        : `Jadwal ditahan sampai ${when} menunggu konfirmasi admin.`,
+    }),
+    h('div', { id: 'payment-panel' }),
+    h('a', {
+      class: 'btn btn--ghost',
+      href: tenantHref('/booking/'),
+      text: 'Buat booking lain',
+    }),
+  );
+
+  $('booking-root').replaceChildren(result);
+
+  if (needsPay) {
+    renderPaymentPanel({
+      container: $('payment-panel'),
+      tenantId: S.tenant.id,
+      booking: r,
+      statusNode: $('payment-status'),
+    });
+  }
+
   $('res-title').setAttribute('tabindex', '-1');
   $('res-title').focus();
 }
-
 function buildForm() {
   const min = todayLocal();
   $('booking-root').replaceChildren(h('form', { class: 'form', novalidate: true, onsubmit: submit },
