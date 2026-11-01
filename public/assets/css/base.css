@@ -1,0 +1,44 @@
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 5rem; -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--color-bg); color: var(--color-text); font: 400 var(--fs-body)/1.65 var(--font-body); }
+img { max-width: 100%; display: block; }
+h1, h2, h3 { font-family: var(--font-heading); font-weight: 500; line-height: 1.1; letter-spacing: -.01em; margin: 0; }
+p { margin: 0; }
+a { color: inherit; }
+
+.container { width: min(100% - 2.5rem, var(--container)); margin-inline: auto; }
+.section { padding-block: clamp(3.5rem, 9vw, 7rem); }
+.section-head { display: grid; gap: .75rem; margin-bottom: clamp(2rem, 5vw, 3.5rem); }
+.section-title { font-size: var(--fs-h2); }
+.eyebrow { font: 700 .75rem/1 var(--font-body); letter-spacing: .22em; text-transform: uppercase; color: var(--color-accent); }
+.empty { color: var(--color-text-soft); padding-block: 1.5rem; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 2.75rem;
+  padding: .75rem 1.75rem; border: 1px solid var(--color-primary); border-radius: var(--radius);
+  background: var(--color-primary); color: #fff; font: 500 .8125rem/1 var(--font-body);
+  letter-spacing: .14em; text-transform: uppercase; text-decoration: none; cursor: pointer;
+  transition: background .25s var(--ease), color .25s var(--ease), transform .15s var(--ease);
+}
+.btn:hover { background: transparent; color: var(--color-primary); }
+.btn:active { transform: translateY(1px); }
+.btn--ghost { background: transparent; color: var(--color-primary); }
+.btn--ghost:hover { background: var(--color-primary); color: #fff; }
+
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 3px; }
+.skip-link { position: absolute; left: -999px; top: 0; z-index: 100; background: var(--color-primary); color: #fff; padding: .75rem 1rem; }
+.skip-link:focus { left: 0; }
+
+.skeleton {
+  background: linear-gradient(90deg, var(--color-border), #F3EBE3, var(--color-border));
+  background-size: 200% 100%; animation: shimmer 1.4s linear infinite; border-radius: var(--radius);
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+.reveal { opacity: 0; transform: translateY(16px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+.reveal.is-visible { opacity: 1; transform: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .reveal { opacity: 1; transform: none; }
+}

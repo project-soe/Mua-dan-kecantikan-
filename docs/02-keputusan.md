@@ -66,3 +66,11 @@
     (bagian 2: quoteShipping oleh admin, approveShippingQuote oleh pelanggan). Voucher, ongkir berbasis
     jarak, kurir, dan varian produk ditunda. Pembayaran pesanan belum tersambung (bagian 3).
 32. Stok yang terkunci pesanan belum dibayar dilepas lewat expireStaleOrders; wajib dijadwalkan (Fase 6).
+33. Frontend tanpa build: modul ES langsung dari public/assets/js (src/ tidak dipakai). SDK Firebase dari
+    CDN gstatic dengan versi dipatok (firebase.js). Font Google dipakai selama pengembangan; self-host
+    di Fase 6 untuk performa/privasi.
+34. Warna tema publik dibaca dari publicTenants.theme.colors (hex divalidasi). Endpoint updateBrandTheme
+    yang menulisnya belum ada. Tema di branding/theme tetap hanya untuk anggota.
+35. Navigasi dan tombol hanya mengarah ke fitur yang sudah ada (tautan bagian di beranda). Tombol Booking,
+    Keranjang, dan halaman lain ditambahkan bersamaan dengan halamannya.
+36. Teks sekunder memakai --color-text-soft (#6B5F5A) demi kontras >= 4.5:1; #81746F hanya untuk dekorasi.

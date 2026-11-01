@@ -1,0 +1,26 @@
+:root {
+  --color-primary: #592F3B;   /* Burgundy */
+  --color-secondary: #D8BFA9; /* Champagne */
+  --color-bg: #F7F1EA;        /* Ivory */
+  --color-accent: #98766A;    /* Rose Taupe */
+  --color-text: #292321;      /* Espresso */
+  --color-surface: #FFFFFF;
+  --color-muted: #81746F;     /* dekorasi saja: kontras teks kecil < 4.5:1 */
+  --color-border: #E9DED5;
+  --color-text-soft: #6B5F5A; /* teks sekunder, kontras >= 4.5:1 di atas ivory */
+
+  --font-heading: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-accent: 'Playfair Display', Georgia, serif;
+  --font-body: 'DM Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --fs-hero: clamp(2.6rem, 7vw, 5rem);
+  --fs-h2: clamp(1.9rem, 4.5vw, 3rem);
+  --fs-h3: clamp(1.3rem, 2.5vw, 1.65rem);
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+
+  --radius: 2px;
+  --shadow: 0 1px 2px rgba(41, 35, 33, .06), 0 10px 28px rgba(41, 35, 33, .07);
+  --container: 72rem;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
