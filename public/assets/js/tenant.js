@@ -25,3 +25,11 @@ export async function resolveTenant() {
   if (!pub.exists() || pub.data().status !== 'active') return null;
   return { id: tenantId, ...pub.data() };
 }
+
+// Tautan internal yang mempertahankan ?tenant= saat di localhost.
+export function tenantHref(path) {
+  const u = new URL(path, location.origin);
+  const o = new URLSearchParams(location.search).get('tenant');
+  if (isLocal && o && ID_RE.test(o)) u.searchParams.set('tenant', o);
+  return u.pathname + u.search + u.hash;
+}

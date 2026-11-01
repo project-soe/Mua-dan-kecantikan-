@@ -6,3 +6,6 @@ export const firebaseConfig = {
   storageBucket: 'demo-mua-putri.appspot.com',
   appId: 'demo-app',
 };
+
+// Alamat backend produksi (tanpa garis miring akhir). Di localhost otomatis http://<host>:3000.
+export const apiBase = '';

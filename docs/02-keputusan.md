@@ -74,3 +74,9 @@
 35. Navigasi dan tombol hanya mengarah ke fitur yang sudah ada (tautan bagian di beranda). Tombol Booking,
     Keranjang, dan halaman lain ditambahkan bersamaan dengan halamannya.
 36. Teks sekunder memakai --color-text-soft (#6B5F5A) demi kontras >= 4.5:1; #81746F hanya untuk dekorasi.
+37. API dipanggil dari browser lewat daftar asal (CORS) yang eksplisit: env ALLOWED_ORIGINS di produksi;
+    di emulator otomatis http://localhost:5000 dan http://127.0.0.1:5000. Tidak ada wildcard.
+38. Pelanggan login sebagai tamu (Firebase anonymous auth). Di produksi, penyedia Anonymous harus diaktifkan
+    di Firebase Console. Konsekuensi: riwayat booking terikat ke perangkat/sesi tamu; akun email opsional menyusul.
+39. Halaman memakai boot bersama (page.js). home.js masih memakai boot sendiri (duplikasi; dirapikan nanti).
+40. Kunci idempotensi dibuat di browser dan dipakai ulang selama isian booking sama.

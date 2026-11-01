@@ -1,16 +1,20 @@
 import { h } from './dom.js';
 import { DAY_ORDER, DAY_LABELS, formatWindows } from './format.js';
+import { tenantHref } from './tenant.js';
 
-const LINKS = [['#layanan', 'Layanan'], ['#produk', 'Produk'], ['#portfolio', 'Portfolio'], ['#jam', 'Jam Operasional']];
+const LINKS = [
+  ['/#layanan', 'Layanan'], ['/#produk', 'Produk'], ['/#portfolio', 'Portfolio'],
+  ['/booking/', 'Booking'], ['/#jam', 'Jam Operasional'],
+];
 
 export function renderHeader(tenant) {
   const root = document.getElementById('site-header');
   const logo = typeof tenant.logoUrl === 'string' && tenant.logoUrl.startsWith('https://') ? tenant.logoUrl : null;
-  const brand = h('a', { class: 'brand', href: '#main', 'aria-label': `${tenant.brandName} — ke atas` },
+  const brand = h('a', { class: 'brand', href: tenantHref('/'), 'aria-label': `${tenant.brandName} — beranda` },
     logo ? h('img', { src: logo, alt: tenant.brandName }) : tenant.brandName);
 
   const nav = h('nav', { class: 'nav', id: 'site-nav', 'aria-label': 'Navigasi utama' },
-    LINKS.map(([href, label]) => h('a', { href, onclick: () => close() }, label)));
+    LINKS.map(([href, label]) => h('a', { href: tenantHref(href), onclick: () => close() }, label)));
   const toggle = h('button', { class: 'nav-toggle', type: 'button', 'aria-expanded': 'false', 'aria-controls': 'site-nav',
     onclick: () => (nav.classList.contains('is-open') ? close() : open()) }, 'Menu');
   function open() { nav.classList.add('is-open'); toggle.setAttribute('aria-expanded', 'true'); toggle.textContent = 'Tutup'; }

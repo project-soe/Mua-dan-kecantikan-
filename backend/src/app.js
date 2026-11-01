@@ -1,4 +1,5 @@
 import express from 'express';
+import { cors } from './cors.js';
 import { TENANT_ROLES, ROLE_GROUPS } from '../../shared/constants/index.js';
 import { notFound, errorHandler, wrap } from './errors.js';
 import { authenticate } from './middleware/auth.js';
@@ -19,9 +20,10 @@ import { submitPaymentProof } from './payments/submit.js';
 import { verifyPayment } from './payments/verify.js';
 import { createOrder, cancelOrder, expireStaleOrders } from './orders/handlers.js';
 
-export function createApp({ db, auth, clock = Date.now, proofInfo }) {
+export function createApp({ db, auth, clock = Date.now, proofInfo, allowedOrigins = [] }) {
   const app = express();
   app.disable('x-powered-by');
+  app.use(cors(allowedOrigins));
   app.use(express.json({ limit: '100kb' }));
 
   const staff = (name, roles, handler) =>

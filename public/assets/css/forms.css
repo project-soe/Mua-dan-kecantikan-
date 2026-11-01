@@ -1,0 +1,24 @@
+.form { display: grid; gap: 1.75rem; max-width: 40rem; }
+fieldset { border: 1px solid var(--color-border); background: var(--color-surface); padding: 1.25rem; margin: 0; display: grid; gap: .85rem; min-width: 0; }
+legend { font: 700 .75rem/1 var(--font-body); letter-spacing: .18em; text-transform: uppercase; color: var(--color-accent); padding-inline: .5rem; }
+.choice { display: flex; gap: .85rem; align-items: flex-start; padding: .85rem; border: 1px solid var(--color-border); cursor: pointer; transition: border-color .2s var(--ease), background .2s var(--ease); }
+.choice:has(input:checked) { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-secondary) 18%, white); }
+.choice input { margin-top: .25rem; width: 1.15rem; height: 1.15rem; accent-color: var(--color-primary); flex: none; }
+.choice__body { display: grid; gap: .15rem; }
+.field { display: grid; gap: .4rem; }
+.field label { font: 500 .875rem/1.2 var(--font-body); }
+.input { width: 100%; min-height: 2.75rem; padding: .7rem .9rem; border: 1px solid var(--color-muted); border-radius: var(--radius); background: #fff; color: var(--color-text); font: inherit; }
+textarea.input { min-height: 5.5rem; resize: vertical; }
+.slots { display: flex; flex-wrap: wrap; gap: .6rem; }
+.slot { min-height: 2.75rem; min-width: 4.75rem; padding: .5rem 1rem; border: 1px solid var(--color-muted); background: #fff; color: var(--color-text); font: 500 .9375rem/1 var(--font-body); cursor: pointer; transition: background .2s var(--ease), color .2s var(--ease); }
+.slot:hover { border-color: var(--color-primary); }
+.slot[aria-pressed="true"] { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.alert { padding: .9rem 1rem; border: 1px solid #b3261e; background: #fdf1f0; color: #7a1a14; }
+.notice { padding: .9rem 1rem; border: 1px solid var(--color-border); background: var(--color-surface); color: var(--color-text-soft); font-size: var(--fs-small); }
+.summary { border-top: 1px solid var(--color-border); padding-top: 1rem; display: grid; gap: .35rem; }
+.summary strong { font-family: var(--font-accent); font-weight: 500; }
+.result { display: grid; gap: 1.25rem; max-width: 40rem; background: var(--color-surface); border: 1px solid var(--color-border); padding: 1.5rem; }
+.result dl { display: grid; grid-template-columns: max-content 1fr; gap: .5rem 1.25rem; margin: 0; }
+.result dt { color: var(--color-text-soft); font-size: var(--fs-small); }
+.result dd { margin: 0; font-weight: 500; }
+.btn[disabled] { opacity: .55; cursor: not-allowed; }
