@@ -59,3 +59,10 @@
 29. KOREKSI poin 23: kondisi lama confirmBooking tidak terbukti bisa menyebabkan double booking lewat
     alur normal (tahanan kedaluwarsa selalu dipangkas saat ada penulisan baru di slot yang sama).
     Perubahan itu penguatan (hardening); tes regresi memakai data tidak konsisten yang disiapkan manual.
+30. Pesanan produk dibangun bertahap. Bagian 1: createOrder/cancelOrder/expireStaleOrders.
+    Stok dikurangi saat pesanan dibuat (transaksi atomik) dan dikembalikan saat batal/kedaluwarsa.
+    Pesanan kedaluwarsa 24 jam (konstanta HOLD_MINUTES; belum per-tenant). Maks 3 pesanan menunggu per pelanggan.
+31. Ongkir saat ini hanya manual_quote: shippingCost dan totalAmount = null sampai ada kutipan
+    (bagian 2: quoteShipping oleh admin, approveShippingQuote oleh pelanggan). Voucher, ongkir berbasis
+    jarak, kurir, dan varian produk ditunda. Pembayaran pesanan belum tersambung (bagian 3).
+32. Stok yang terkunci pesanan belum dibayar dilepas lewat expireStaleOrders; wajib dijadwalkan (Fase 6).

@@ -1,21 +1,13 @@
 {
   "indexes": [
-    {
-      "collectionGroup": "bookings",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "customerId", "order": "ASCENDING" },
-        { "fieldPath": "bookingStatus", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "bookings",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "bookingStatus", "order": "ASCENDING" },
-        { "fieldPath": "paymentDeadline", "order": "ASCENDING" }
-      ]
-    }
+    { "collectionGroup": "bookings", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "customerId", "order": "ASCENDING" }, { "fieldPath": "bookingStatus", "order": "ASCENDING" } ] },
+    { "collectionGroup": "bookings", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "bookingStatus", "order": "ASCENDING" }, { "fieldPath": "paymentDeadline", "order": "ASCENDING" } ] },
+    { "collectionGroup": "orders", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "customerId", "order": "ASCENDING" }, { "fieldPath": "orderStatus", "order": "ASCENDING" } ] },
+    { "collectionGroup": "orders", "queryScope": "COLLECTION", "fields": [
+      { "fieldPath": "orderStatus", "order": "ASCENDING" }, { "fieldPath": "expiresAt", "order": "ASCENDING" } ] }
   ],
   "fieldOverrides": []
 }

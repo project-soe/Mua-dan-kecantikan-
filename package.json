@@ -12,7 +12,9 @@
     "test:rules": "firebase emulators:exec --only firestore,storage --project demo-mua-putri \"node --test --test-concurrency=1 tests/security/*.test.js\"",
     "start": "node backend/src/server.js",
     "test:integration": "firebase emulators:exec --only auth,firestore,storage --project demo-mua-putri \"node --test --test-concurrency=1 tests/integration/*.test.js\"",
-    "test": "npm run test:unit && npm run test:rules && npm run test:integration"
+    "test": "npm run test:unit && npm run test:rules && npm run test:integration",
+    "seed": "FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_STORAGE_EMULATOR_HOST=127.0.0.1:9199 node scripts/seed.js",
+    "dev:backend": "FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 FIREBASE_STORAGE_EMULATOR_HOST=127.0.0.1:9199 node backend/src/server.js"
   },
   "dependencies": {
     "express": "^5.3.0",
