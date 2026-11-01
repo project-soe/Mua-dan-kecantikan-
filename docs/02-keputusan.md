@@ -56,3 +56,6 @@
     tenggat baru. Pembayaran terverifikasi untuk booking batal -> refundReview=true.
 27. Pembayaran pesanan produk (orderId) belum ada; ditolak eksplisit sampai createOrder dibuat.
 28. Penyimpanan QRIS: tenants/{id}/payment-methods/ (publik baca, owner/finance tulis).
+29. KOREKSI poin 23: kondisi lama confirmBooking tidak terbukti bisa menyebabkan double booking lewat
+    alur normal (tahanan kedaluwarsa selalu dipangkas saat ada penulisan baru di slot yang sama).
+    Perubahan itu penguatan (hardening); tes regresi memakai data tidak konsisten yang disiapkan manual.
