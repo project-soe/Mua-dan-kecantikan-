@@ -19,6 +19,9 @@ const set = (path, data) => db.doc(path).set(data);
 await user('owner-demo', 'owner@muaputri.test');
 await user('root-demo', 'root@platform.test');
 await user('cust-demo', 'pelanggan@muaputri.test');
+await user('admin-demo', 'admin@muaputri.test');
+await user('finance-demo', 'finance@muaputri.test');
+await user('content-demo', 'konten@muaputri.test');
 
 const win = [{ open: '09:00', close: '17:00' }];
 await set(`platformUsers/root-demo`, { role: 'super_admin', status: 'active' });
@@ -70,7 +73,10 @@ for (const [id, name, sku, price, discountPrice, stock] of products) {
   await set(`tenants/${T}/uniqueKeys/product-slug_${id}`, { productId: id, createdAt: ts });
 }
 
+for (const [uid, email, role] of [['admin-demo', 'admin@muaputri.test', 'admin'], ['finance-demo', 'finance@muaputri.test', 'finance_manager'], ['content-demo', 'konten@muaputri.test', 'content_manager']]) {
+  await set(`tenants/${T}/memberships/${uid}`, { uid, email, role, status: 'active', createdAt: ts });
+}
 console.log('Seed selesai (data contoh, emulator saja).');
-console.log('Akun: owner@muaputri.test | root@platform.test | pelanggan@muaputri.test');
+console.log('Akun staf (@muaputri.test): owner@ | admin@ | finance@ | konten@  |  juga root@platform.test dan pelanggan@muaputri.test');
 console.log('Kata sandi semua akun:', PASS);
 process.exit(0);

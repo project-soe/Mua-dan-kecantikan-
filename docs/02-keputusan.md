@@ -86,3 +86,12 @@
     akun pelanggan opsional (tautkan akun tamu ke email/kata sandi) — langkah berikutnya.
 47. Duplikasi: pembayaran.js masih punya statusText sendiri; status.js adalah versi bersama. Rapikan nanti.
 48. Bagian "Pesanan produk" sudah membaca data sungguhan tetapi belum bisa terisi dari tampilan (checkout belum ada).
+49. Dashboard admin (/admin/) memakai aplikasi Firebase kedua bernama "admin" agar sesi admin tidak
+    bercampur dengan sesi tamu pelanggan. Hak akses = keanggotaan tenant aktif + email terverifikasi.
+50. Menyembunyikan tombol/nomor telepon di UI hanyalah kenyamanan. Penegakan ada di backend & Rules.
+    Content Manager masih bisa membaca dokumen booking (termasuk telepon) menurut Rules saat ini; bila
+    "PII terbatas" harus ditegakkan, pisahkan data kontak ke dokumen sendiri (keputusan terbuka).
+51. /admin/ tidak ditautkan dari menu publik dan diberi noindex. Akun contoh dev: owner@, admin@, finance@,
+    konten@ muaputri.test (kata sandi di seed, hanya emulator).
+52. Tab dashboard: Booking (semua staf) dan Pembayaran (owner, finance_manager). Belum ada: produk, layanan,
+    portfolio, pengaturan pembayaran, undangan admin, pesanan produk/ongkir.

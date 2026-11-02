@@ -40,3 +40,7 @@ export function orderStatusText(o) {
     default: return String(o.orderStatus);
   }
 }
+
+export const METHOD_LABEL = {
+  bank_transfer: 'Transfer Bank', dana: 'DANA', ovo: 'OVO', gopay: 'GoPay', shopeepay: 'ShopeePay', qris: 'QRIS',
+};
