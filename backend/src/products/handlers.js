@@ -179,3 +179,28 @@ export function publishProduct(db) {
     res.json({ ok: true, data: { productId, productStatus: published ? 'published' : 'draft' } });
   };
 }
+
+// Hapus permanen. Wajib dibatalkan terbitnya dulu agar tidak terhapus tak sengaja dari etalase.
+// Riwayat pesanan aman (menyimpan snapshot). File gambar di Storage tidak dihapus (pembersihan menyusul).
+export function deleteProduct(db) {
+  return async (req, res) => {
+    const t = req.tenant.id;
+    rejectUnknown(req.body, ['tenantId', 'productId']);
+    const productId = idOf(req.body.productId, 'productId');
+    const ref = productRef(db, t, productId);
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      if (!snap.exists) throw new AppError('resource-not-found', 'Produk tidak ditemukan');
+      const p = snap.data();
+      if (p.published === true) throw new AppError('failed-precondition', 'Batalkan penerbitan produk sebelum menghapus');
+      tx.delete(ref);
+      if (p.sku) tx.delete(keyRef(db, t, skuKey(p.sku)));   // SKU bisa dipakai lagi
+      if (p.slug) tx.delete(keyRef(db, t, slugKey(p.slug)));
+      tx.set(auditRef(db, t), auditEntry({
+        actorUid: req.user.uid, tenantId: t, action: 'deleteProduct', resourceType: 'product', resourceId: productId,
+        summary: { sku: p.sku ?? null, name: p.name ?? null },
+      }));
+    });
+    res.json({ ok: true, data: { productId, deleted: true } });
+  };
+}

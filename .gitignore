@@ -4,3 +4,4 @@ node_modules/
 .firebase/
 serviceAccountKey*.json
 token-github.txt
+emulator-data/

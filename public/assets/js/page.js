@@ -1,6 +1,7 @@
 import { resolveTenant, diag } from './tenant.js';
 import { isLocal } from './env.js';
 import { applyTheme } from './theme.js';
+import { applyBrand } from './brand.js';
 import { h } from './dom.js';
 import { renderHeader, renderFooter } from './layout.js';
 
@@ -22,6 +23,7 @@ export async function bootPage(pageTitle) {
     return null;
   }
   applyTheme(tenant.theme);
+  applyBrand(tenant);
   document.title = `${pageTitle} — ${tenant.brandName}`;
   renderHeader(tenant);
   renderFooter(tenant);

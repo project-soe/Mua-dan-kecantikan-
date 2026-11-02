@@ -53,3 +53,18 @@
 .hours { list-style: none; margin: 0; padding: 0; display: grid; gap: .4rem; max-width: 22rem; }
 .hours li { display: flex; justify-content: space-between; gap: 1rem; font-size: var(--fs-small); border-bottom: 1px solid rgba(247, 241, 234, .18); padding-bottom: .4rem; }
 .copyright { margin-top: 2.5rem; font-size: .8125rem; opacity: .75; }
+
+/* Identitas brand: logo di header, header gelap, gambar utama beranda */
+.brand { display: inline-flex; align-items: center; gap: .65rem; }
+.brand img { height: 2.75rem; width: auto; }
+.brand__text--beside { font-size: 1.25rem; }
+html[data-header="dark"] .site-header { background: #14100F; border-bottom-color: #2B211E; }
+html[data-header="dark"] .brand { color: var(--color-secondary); }
+html[data-header="dark"] .nav a, html[data-header="dark"] .nav-toggle { color: #EADFD3; }
+html[data-header="dark"] .nav a:hover { color: #fff; }
+@media (max-width: 47.99rem) {
+  html[data-header="dark"] .nav.is-open { background: #14100F; border-bottom-color: #2B211E; }
+}
+.hero__art--image { aspect-ratio: auto; max-height: none; border-radius: var(--radius); background: #0A0706; display: block; overflow: hidden; }
+.hero__art--image img { width: 100%; height: auto; display: block; }
+@media (min-width: 48rem) { .site-footer__grid { grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); } }

@@ -2,6 +2,7 @@ import { db, collection, getDocs, query, where, limit } from './firebase.js';
 import { resolveTenant, diag, tenantHref } from './tenant.js';
 import { isLocal } from './env.js';
 import { applyTheme } from './theme.js';
+import { applyBrand } from './brand.js';
 import { h } from './dom.js';
 import { rupiah, formatDuration } from './format.js';
 import { imageUrl } from './media.js';
@@ -64,7 +65,9 @@ function renderHero(tenant) {
         h('a', { class: 'btn', href: tenantHref('/booking/'), text: 'Booking sekarang' }),
         h('a', { class: 'btn btn--ghost', href: '#layanan', text: 'Lihat layanan' }),
         h('a', { class: 'btn btn--ghost', href: '#produk', text: 'Lihat produk' }))),
-    h('div', { class: 'hero__art reveal', 'aria-hidden': 'true', text: [...tenant.brandName][0]?.toUpperCase() ?? '' }));
+    tenant.brandImage
+      ? h('div', { class: 'hero__art hero__art--image reveal' }, h('img', { src: imageUrl(tenant.brandImage), alt: '', decoding: 'async' }))
+      : h('div', { class: 'hero__art reveal', 'aria-hidden': 'true', text: [...tenant.brandName][0]?.toUpperCase() ?? '' }));
 }
 
 async function fillSection(tenant, { name, gridId, sectionId, max, render, sort, emptyText, hideWhenEmpty }) {
@@ -112,6 +115,7 @@ async function main() {
   }
 
   applyTheme(tenant.theme);
+  applyBrand(tenant);
   document.title = tenant.tagline ? `${tenant.brandName} — ${tenant.tagline}` : tenant.brandName;
   document.querySelector('meta[name="description"]')?.setAttribute('content', tenant.description || tenant.tagline || '');
   renderHeader(tenant);

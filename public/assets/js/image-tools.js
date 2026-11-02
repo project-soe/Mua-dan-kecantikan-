@@ -12,6 +12,8 @@ export function planSize(width, height, maxSide) {
 // Produk/portfolio: versi "optimized" dan "thumbnails" (dibaca publik). Layanan: langsung di folder services.
 export function imagePaths(tenantId, area, id, ext, thumbExt = ext) {
   if (area === 'services') return { full: `tenants/${tenantId}/services/${id}.${ext}`, thumb: null };
+  if (area === 'branding') return { full: `tenants/${tenantId}/branding/${id}.${ext}`, thumb: null };
+  if (area === 'payment-methods') return { full: `tenants/${tenantId}/payment-methods/${id}.${ext}`, thumb: null };
   if (area === 'products' || area === 'portfolio') {
     return {
       full: `tenants/${tenantId}/${area}/optimized/${id}.${ext}`,

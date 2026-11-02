@@ -5,7 +5,7 @@ import { auditRef } from '../common.js';
 import { TZ_OFFSETS, WEEKDAYS, parseTime, isValidDate } from './schedule.js';
 import { bad, settingsRef } from './common.js';
 
-function parseWeekly(weekly, interval) {
+export function parseWeekly(weekly, interval) {
   if (typeof weekly !== 'object' || weekly === null || Array.isArray(weekly)) throw bad('weekly harus berupa objek');
   for (const k of Object.keys(weekly)) if (!WEEKDAYS.includes(k)) throw bad(`Hari tidak dikenal: ${k}`);
   const out = {};

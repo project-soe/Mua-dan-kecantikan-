@@ -95,3 +95,14 @@
     konten@ muaputri.test (kata sandi di seed, hanya emulator).
 52. Tab dashboard: Booking (semua staf) dan Pembayaran (owner, finance_manager). Belum ada: produk, layanan,
     portfolio, pengaturan pembayaran, undangan admin, pesanan produk/ongkir.
+57. Logo Mua Putri (monogram emas di atas latar hitam) dipotong menjadi ikon transparan (header), logo lengkap
+    (beranda), dan favicon persegi. Diunggah lewat layar Brand, bukan ditanam di kode (multi-tenant).
+58. Identitas brand disimpan sebagai path Storage (logoImage, brandImage, faviconImage) di folder branding tenant,
+    plus headerStyle (light/dark). updateBrandProfile memvalidasi path; proyeksi publik hanya memuat field publik.
+59. Jam toko produk (settings/storeHours + publicTenants.storeHours) terpisah dari jam layanan MUA
+    (settings/businessHours, menentukan jam booking). Jam toko belum membatasi pesanan produk.
+60. deleteProduct (owner/admin): hanya produk non-terbit; menghapus kunci SKU/slug; riwayat pesanan aman
+    karena snapshot. File gambar yatim di Storage belum dibersihkan (menyusul bersama pengelolaan media).
+61. npm run emulators menyimpan/memulihkan data di ./emulator-data (tidak di-commit). Seed tidak menimpa data
+    yang ada kecuali --force. Data tersimpan hanya bila emulator dimatikan dengan Ctrl+C.
+62. Layar Brand memakai mesin formulir mode satu dokumen (cfg.single).

@@ -6,7 +6,8 @@ import { authenticate } from './middleware/auth.js';
 import { loadTenant, requireMembership, requireSuperAdmin, requireActiveTenant } from './middleware/authorize.js';
 import { getMyAccess, setTenantStatus } from './tenants/handlers.js';
 import { updateBrandProfile } from './tenants/brand.js';
-import { createProduct, updateProduct, updateProductStock, publishProduct } from './products/handlers.js';
+import { updateStoreHours } from './tenants/storeHours.js';
+import { createProduct, updateProduct, updateProductStock, publishProduct, deleteProduct } from './products/handlers.js';
 import { createCategory, updateCategory } from './categories/handlers.js';
 import { createService, updateService, publishService } from './services/handlers.js';
 import { createPortfolio, updatePortfolio, publishPortfolio } from './portfolio/handlers.js';
@@ -43,6 +44,7 @@ export function createApp({ db, auth, clock = Date.now, proofInfo, allowedOrigin
   staff('createProduct', ROLE_GROUPS.CONTENT, createProduct);
   staff('updateProduct', ROLE_GROUPS.CONTENT, updateProduct);
   staff('publishProduct', ROLE_GROUPS.CONTENT, publishProduct);
+  staff('deleteProduct', ROLE_GROUPS.ADMIN, deleteProduct);
   staff('updateProductStock', ROLE_GROUPS.ADMIN, updateProductStock);
   staff('createService', ROLE_GROUPS.CONTENT, createService);
   staff('updateService', ROLE_GROUPS.CONTENT, updateService);
@@ -52,6 +54,7 @@ export function createApp({ db, auth, clock = Date.now, proofInfo, allowedOrigin
   staff('publishPortfolio', ROLE_GROUPS.CONTENT, publishPortfolio);
 
   staff('updateBusinessHours', ROLE_GROUPS.ADMIN, updateBusinessHours);
+  staff('updateStoreHours', ROLE_GROUPS.ADMIN, updateStoreHours);
   staff('confirmBooking', ROLE_GROUPS.ADMIN, (d) => confirmBooking(d, clock));
   staff('expireStaleBookings', ROLE_GROUPS.ADMIN, (d) => expireStaleBookings(d, clock));
   staff('updatePaymentSettings', ROLE_GROUPS.FINANCE, updatePaymentSettings);
