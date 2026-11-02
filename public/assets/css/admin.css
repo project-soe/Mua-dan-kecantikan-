@@ -9,3 +9,23 @@
 .narrow { max-width: 28rem; }
 dialog.dlg { border: 1px solid var(--color-border); padding: 1.5rem; width: min(92vw, 28rem); background: var(--color-bg); color: var(--color-text); }
 dialog.dlg::backdrop { background: rgba(41, 35, 33, .55); }
+
+.item { display: flex; gap: 1rem; background: var(--color-surface); border: 1px solid var(--color-border); padding: 1rem; }
+.item__img { width: 4.5rem; height: 5.5rem; flex: none; background: var(--color-border); overflow: hidden; }
+.item__img img { width: 100%; height: 100%; object-fit: cover; }
+.item__body { display: grid; gap: .4rem; min-width: 0; flex: 1; align-content: start; }
+.item__body .hist__head { gap: .5rem; }
+.imgprev img { max-width: 12rem; max-height: 12rem; border: 1px solid var(--color-border); }
+.gallery-row { display: flex; flex-wrap: wrap; gap: .75rem; }
+.gal { display: grid; gap: .4rem; justify-items: start; }
+.gal img { width: 6rem; height: 7.5rem; object-fit: cover; border: 1px solid var(--color-border); }
+
+.item { display: flex; gap: 1rem; background: var(--color-surface); border: 1px solid var(--color-border); padding: 1rem; }
+.item__img { width: 4.5rem; height: 5.5rem; flex: none; background: var(--color-border); overflow: hidden; }
+.item__img img { width: 100%; height: 100%; object-fit: cover; }
+.item__body { display: grid; gap: .4rem; min-width: 0; flex: 1; align-content: start; }
+.item__body .hist__head { gap: .5rem; }
+.imgprev img { max-width: 12rem; max-height: 12rem; border: 1px solid var(--color-border); }
+.gallery-row { display: flex; flex-wrap: wrap; gap: .75rem; }
+.gal { display: grid; gap: .4rem; justify-items: start; }
+.gal img { width: 6rem; height: 7.5rem; object-fit: cover; border: 1px solid var(--color-border); }

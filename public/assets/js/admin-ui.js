@@ -28,7 +28,7 @@ export function askDialog({ title, text = '', fields = [], confirmLabel = 'Lanju
     const err = h('p', { class: 'alert', role: 'alert', hidden: true });
     const controls = fields.map((f) => {
       const attrs = { class: 'input', id: `dlg-${f.name}` };
-      if (f.type === 'number') Object.assign(attrs, { type: 'number', min: '1', step: '1', inputmode: 'numeric' });
+      if (f.type === 'number') Object.assign(attrs, { type: 'number', min: String(f.min ?? 1), step: '1', inputmode: 'numeric' });
       else if (f.type !== 'textarea') attrs.type = 'text';
       const el = h(f.type === 'textarea' ? 'textarea' : 'input', attrs);
       if (f.value !== undefined) el.value = f.value;

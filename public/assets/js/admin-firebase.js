@@ -5,7 +5,7 @@ import { getFirestore, connectFirestoreEmulator } from 'https://www.gstatic.com/
 import {
   getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification,
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
-import { getStorage, connectStorageEmulator, ref, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
+import { getStorage, connectStorageEmulator, ref, getDownloadURL, uploadBytes } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
 import { firebaseConfig } from './firebase-config.js';
 import { isLocal } from './env.js';
 
@@ -19,7 +19,7 @@ if (isLocal) {
   connectStorageEmulator(adminStorage, location.hostname, 9199);
 }
 
-export { signInWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification, ref, getDownloadURL };
+export { signInWithEmailAndPassword, signOut, sendPasswordResetEmail, sendEmailVerification, ref, getDownloadURL, uploadBytes };
 export {
   collection, doc, getDoc, getDocs, query, where, orderBy, limit,
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
