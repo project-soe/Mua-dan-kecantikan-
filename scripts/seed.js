@@ -9,6 +9,10 @@ if (!process.env.FIRESTORE_EMULATOR_HOST || !process.env.FIREBASE_AUTH_EMULATOR_
 const T = 'mua-putri';
 const PASS = 'Passw0rd!x';
 const ts = FieldValue.serverTimestamp();
+if (!process.argv.includes('--force') && (await db.doc(`tenants/${T}/profile/business`).get()).exists) {
+  console.log('Data contoh sudah ada, seed dilewati. Pakai: npm run seed -- --force untuk menimpa.');
+  process.exit(0);
+}
 
 async function user(uid, email) {
   try { await auth.createUser({ uid, email, password: PASS, emailVerified: true }); }

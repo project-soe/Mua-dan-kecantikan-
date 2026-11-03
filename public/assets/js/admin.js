@@ -7,6 +7,9 @@ import { h } from './dom.js';
 import { askDialog, toast } from './admin-ui.js';
 import { mountBookings } from './admin-bookings.js';
 import { mountPayments } from './admin-payments.js';
+import { mountCatalog } from './admin-catalog.js';
+import { mountBrand } from './admin-brand.js';
+import { mountHours } from './admin-hours.js';
 
 const ROLE_LABEL = { owner: 'Owner', admin: 'Admin', content_manager: 'Content Manager', finance_manager: 'Finance Manager' };
 const S = { tenant: null };
@@ -90,6 +93,12 @@ async function enter(user) {
 function showApp(user, role) {
   const tabs = [['booking', 'Booking', mountBookings]];
   if (['owner', 'finance_manager'].includes(role)) tabs.push(['pembayaran', 'Pembayaran', mountPayments]);
+  if (['owner', 'admin', 'content_manager'].includes(role)) {
+    for (const [key, label] of [['produk', 'Produk'], ['layanan', 'Layanan'], ['portfolio', 'Portfolio']]) {
+      tabs.push([key, label, (el, c) => mountCatalog(el, c, key)]);
+    }
+  }
+  if (['owner', 'admin'].includes(role)) tabs.push(['brand', 'Brand', mountBrand], ['jam', 'Jam buka', mountHours]);
   const content = h('div', { id: 'admin-content' });
   const nav = h('nav', { class: 'tabs', 'aria-label': 'Menu admin' });
   const select = (key) => {
