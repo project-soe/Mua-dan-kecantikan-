@@ -106,3 +106,9 @@
 61. npm run emulators menyimpan/memulihkan data di ./emulator-data (tidak di-commit). Seed tidak menimpa data
     yang ada kecuali --force. Data tersimpan hanya bila emulator dimatikan dengan Ctrl+C.
 62. Layar Brand memakai mesin formulir mode satu dokumen (cfg.single).
+63. Beranda: produk dan portfolio tampil sebagai slider (scroll-snap + tombol geser, tanpa pustaka). Kartu membuka
+    jendela detail (<dialog>) yang tumbuh dari kartu; galeri geser, pembanding sebelum/sesudah, deskripsi singkat.
+64. Jendela produk belum punya tombol beli (checkout belum ada); jendela portfolio menautkan ke halaman booking.
+    Belum ada URL unik per item (menyusul di fase SEO/berbagi).
+65. Animasi memakai CSS dan Web Animations API; semua dimatikan saat prefers-reduced-motion.
+66. Logika murni jendela detail (harga, stok, urutan slide) ada di detail-model.js dan dites unit.

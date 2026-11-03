@@ -7,6 +7,9 @@ import { h } from './dom.js';
 import { rupiah, formatDuration } from './format.js';
 import { imageUrl } from './media.js';
 import { renderHeader, renderFooter } from './layout.js';
+import { createSlider } from './slider.js';
+import { openDetail } from './lightbox.js';
+import { priceInfo, stockInfo, sortShowcase } from './detail-model.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -21,6 +24,13 @@ function fatal(title, text) {
 async function loadPublished(tenantId, name, max) {
   const q = query(collection(db, 'tenants', tenantId, name), where('published', '==', true), limit(max));
   return (await getDocs(q)).docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+async function loadCategoryNames(tenantId, name) {
+  try {
+    const snap = await getDocs(collection(db, 'tenants', tenantId, name));
+    return new Map(snap.docs.map((d) => [d.id, d.data().name]));
+  } catch (e) { console.error(e); return new Map(); }
 }
 
 const media = (path, alt, wide = false) => {
@@ -40,19 +50,37 @@ function serviceCard(s) {
         : h('a', { class: 'btn btn--ghost', href: tenantHref(`/booking/?service=${encodeURIComponent(s.id)}`), text: 'Booking' })));
 }
 
-function productCard(p) {
-  const promo = typeof p.discountPrice === 'number' && p.discountPrice < p.price;
-  return h('article', { class: 'card reveal' }, media(p.thumbnailImage ?? p.coverImage, p.name),
-    h('div', { class: 'card__body' },
-      p.brand ? h('p', { class: 'meta', text: p.brand }) : null,
-      h('h3', { class: 'card__title', text: p.name }),
-      h('p', { class: 'price' }, promo ? h('s', { text: rupiah(p.price) }) : null, rupiah(promo ? p.discountPrice : p.price)),
-      (p.stock ?? 0) <= 0 ? h('span', { class: 'badge', text: 'Stok habis' }) : null));
+function showcaseBody(kind, item, title) {
+  const more = h('span', { class: 'card__more', 'aria-hidden': 'true', text: 'Lihat detail' });
+  if (kind === 'product') {
+    const price = priceInfo(item);
+    const stock = stockInfo(item.stock);
+    return [
+      item.brand ? h('p', { class: 'meta', text: item.brand }) : null,
+      h('h3', { class: 'card__title', text: title }),
+      h('p', { class: 'price' }, price.original ? h('s', { text: rupiah(price.original) }) : null, rupiah(price.current)),
+      stock.level === 'out' ? h('span', { class: 'badge badge--out', text: stock.label }) : null,
+      more,
+    ];
+  }
+  return [
+    h('h3', { class: 'card__title', text: title }),
+    item.modelName ? h('p', { class: 'meta', text: `Model: ${item.modelName}` }) : null,
+    more,
+  ];
 }
 
-function portfolioCard(p) {
-  return h('article', { class: 'card reveal' }, media(p.thumbnailImage ?? p.coverImage, p.title),
-    h('div', { class: 'card__body' }, h('h3', { class: 'card__title', text: p.title })));
+// Kartu yang bisa diklik: membuka jendela detail yang tumbuh dari kartu.
+function showcaseCard(kind, item, catNames) {
+  const title = (kind === 'product' ? item.name : item.title) ?? '';
+  const card = h('article', { class: 'card card--showcase reveal' },
+    media(item.thumbnailImage ?? item.coverImage, title),
+    h('div', { class: 'card__body' }, showcaseBody(kind, item, title)),
+    h('button', { class: 'card__hit', type: 'button', 'aria-haspopup': 'dialog', 'aria-label': `Lihat detail: ${title}`, onclick: () => {
+      card.classList.add('is-lit');
+      openDetail({ kind, item, categoryName: catNames.get(item.categoryId) ?? null, originEl: card });
+    } }));
+  return card;
 }
 
 function renderHero(tenant) {
@@ -70,27 +98,39 @@ function renderHero(tenant) {
       : h('div', { class: 'hero__art reveal', 'aria-hidden': 'true', text: [...tenant.brandName][0]?.toUpperCase() ?? '' }));
 }
 
-async function fillSection(tenant, { name, gridId, sectionId, max, render, sort, emptyText, hideWhenEmpty }) {
-  const grid = $(gridId);
+function hideSection(sectionId) {
+  $(sectionId).hidden = true;
+  document.querySelector(`.nav a[href$="#${sectionId}"]`)?.remove();
+}
+
+async function fillServices(tenant) {
+  const grid = $('layanan-grid');
   try {
-    let items = await loadPublished(tenant.id, name, max);
-    if (sort) items = items.sort(sort);
+    const items = await loadPublished(tenant.id, 'services', 6);
+    grid.replaceChildren(...(items.length ? items.map(serviceCard) : [h('p', { class: 'empty', text: 'Belum ada layanan yang dipublikasikan.' })]));
+  } catch (e) {
+    console.error('Gagal memuat layanan', e);
+    grid.replaceChildren(h('p', { class: 'empty', text: 'Konten ini belum dapat dimuat. Coba muat ulang halaman.' }));
+  } finally { grid.removeAttribute('aria-busy'); }
+}
+
+// Produk dan portfolio: baris yang bisa digeser + jendela detail.
+async function fillShowcase(tenant, { kind, name, catCollection, gridId, sectionId, label, emptyText, hideWhenEmpty }) {
+  const box = $(gridId);
+  try {
+    const [raw, cats] = await Promise.all([loadPublished(tenant.id, name, 12), loadCategoryNames(tenant.id, catCollection)]);
+    const items = sortShowcase(kind, raw);
     if (!items.length) {
-      if (hideWhenEmpty) {
-        $(sectionId).hidden = true;
-        document.querySelector(`.nav a[href$="#${sectionId}"]`)?.remove();
-        return;
-      }
-      grid.replaceChildren(h('p', { class: 'empty', text: emptyText }));
-    } else {
-      grid.replaceChildren(...items.map(render));
+      if (hideWhenEmpty) { hideSection(sectionId); return; }
+      box.replaceChildren(h('p', { class: 'empty', text: emptyText }));
+      return;
     }
+    box.className = ''; // lepas kelas grid; susunan diatur slider
+    box.replaceChildren(createSlider({ label, items, render: (it) => showcaseCard(kind, it, cats) }));
   } catch (e) {
     console.error(`Gagal memuat ${name}`, e);
-    grid.replaceChildren(h('p', { class: 'empty', text: 'Konten ini belum dapat dimuat. Coba muat ulang halaman.' }));
-  } finally {
-    grid.removeAttribute('aria-busy');
-  }
+    box.replaceChildren(h('p', { class: 'empty', text: 'Konten ini belum dapat dimuat. Coba muat ulang halaman.' }));
+  } finally { box.removeAttribute('aria-busy'); }
 }
 
 function observeReveals() {
@@ -123,12 +163,11 @@ async function main() {
   renderFooter(tenant);
 
   await Promise.all([
-    fillSection(tenant, { name: 'services', gridId: 'layanan-grid', sectionId: 'layanan', max: 6, render: serviceCard,
-      emptyText: 'Belum ada layanan yang dipublikasikan.' }),
-    fillSection(tenant, { name: 'products', gridId: 'produk-grid', sectionId: 'produk', max: 8, render: productCard,
-      sort: (a, b) => Number((b.stock ?? 0) > 0) - Number((a.stock ?? 0) > 0), emptyText: 'Belum ada produk yang dipublikasikan.' }),
-    fillSection(tenant, { name: 'portfolio', gridId: 'portfolio-grid', sectionId: 'portfolio', max: 6, render: portfolioCard,
-      sort: (a, b) => Number(b.featured === true) - Number(a.featured === true), hideWhenEmpty: true }),
+    fillServices(tenant),
+    fillShowcase(tenant, { kind: 'product', name: 'products', catCollection: 'productCategories', gridId: 'produk-grid',
+      sectionId: 'produk', label: 'Produk kecantikan', emptyText: 'Belum ada produk yang dipublikasikan.' }),
+    fillShowcase(tenant, { kind: 'portfolio', name: 'portfolio', catCollection: 'serviceCategories', gridId: 'portfolio-grid',
+      sectionId: 'portfolio', label: 'Hasil MUA', hideWhenEmpty: true }),
   ]);
   observeReveals();
 }
