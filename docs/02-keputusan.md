@@ -112,3 +112,8 @@
     Belum ada URL unik per item (menyusul di fase SEO/berbagi).
 65. Animasi memakai CSS dan Web Animations API; semua dimatikan saat prefers-reduced-motion.
 66. Logika murni jendela detail (harga, stok, urutan slide) ada di detail-model.js dan dites unit.
+67. Kerangka panel admin dirapikan: bilah atas, menu berkelompok (sisi kiri di layar lebar, baris geser di ponsel),
+    judul + penjelasan per halaman, tab aktif tersimpan di hash URL. Daftar menu dan peran ada di admin-nav.js
+    (hanya pengaturan tampilan; penegakan akses tetap di backend dan Rules).
+68. Layar Metode bayar: perubahan rekening memicu dialog kata sandi (reautentikasi) bila login sudah lebih dari 15 menit.
+    Logika penyusunan muatan ada di paymethods-model.js (dites unit).

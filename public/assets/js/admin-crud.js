@@ -71,8 +71,8 @@ export async function mountCrud(root, ctx, cfg) {
     const body = !ok ? [h('p', { class: 'alert', role: 'alert', text: 'Data belum dapat dimuat.' })]
       : state.items.length ? state.items.map(card) : [h('p', { class: 'empty', text: `Belum ada ${cfg.singular}.` })];
     root.replaceChildren(
-      h('div', { class: 'toolbar' },
-        h('h2', { class: 'card__title', text: cfg.title }),
+      h('div', { class: 'toolbar toolbar--split' },
+        h('p', { class: 'meta', text: `${state.items.length} ${cfg.singular} terdaftar` }),
         h('button', { class: 'btn btn--small', type: 'button', text: `Tambah ${cfg.singular}`, onclick: () => showEditor(null) })),
       h('div', { class: 'hist-list', 'aria-live': 'polite' }, body));
   }
@@ -216,7 +216,7 @@ export async function mountCrud(root, ctx, cfg) {
     }
 
     root.replaceChildren(h('form', { class: 'form', novalidate: true, onsubmit: save },
-      h('h2', { class: 'card__title', text: cfg.single ? cfg.title : (isNew ? `Tambah ${cfg.singular}` : `Edit ${cfg.singular}`) }),
+      cfg.single ? null : h('h2', { class: 'card__title', text: isNew ? `Tambah ${cfg.singular}` : `Edit ${cfg.singular}` }),
       cfg.fields.filter((f) => !f.hidden && !(f.createOnly && !isNew)).map(fieldNode),
       errBox,
       h('div', { class: 'hist__actions' }, saveBtn,

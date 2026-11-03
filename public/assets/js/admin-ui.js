@@ -29,7 +29,7 @@ export function askDialog({ title, text = '', fields = [], confirmLabel = 'Lanju
     const controls = fields.map((f) => {
       const attrs = { class: 'input', id: `dlg-${f.name}` };
       if (f.type === 'number') Object.assign(attrs, { type: 'number', min: String(f.min ?? 1), step: '1', inputmode: 'numeric' });
-      else if (f.type !== 'textarea') attrs.type = 'text';
+      else if (f.type !== 'textarea') attrs.type = f.type === 'password' ? 'password' : 'text';
       const el = h(f.type === 'textarea' ? 'textarea' : 'input', attrs);
       if (f.value !== undefined) el.value = f.value;
       return [f, el];
@@ -39,7 +39,7 @@ export function askDialog({ title, text = '', fields = [], confirmLabel = 'Lanju
       e.preventDefault();
       const out = {};
       for (const [f, el] of controls) {
-        const v = el.value.trim();
+        const v = f.type === 'password' ? el.value : el.value.trim();
         if (f.required && !v) { err.hidden = false; err.textContent = `${f.label} wajib diisi.`; el.focus(); return; }
         out[f.name] = v;
       }

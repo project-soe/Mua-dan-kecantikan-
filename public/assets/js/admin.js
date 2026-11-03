@@ -10,20 +10,35 @@ import { mountPayments } from './admin-payments.js';
 import { mountCatalog } from './admin-catalog.js';
 import { mountBrand } from './admin-brand.js';
 import { mountHours } from './admin-hours.js';
+import { mountPayMethods } from './admin-paymethods.js';
+import { tabsFor, defaultTab, groupTabs } from './admin-nav.js';
 
 const ROLE_LABEL = { owner: 'Owner', admin: 'Admin', content_manager: 'Content Manager', finance_manager: 'Finance Manager' };
 const S = { tenant: null };
 const root = () => document.getElementById('admin-root');
 
-function render(rightOfBar, ...content) {
-  root().replaceChildren(
-    h('header', { class: 'site-header' }, h('div', { class: 'container site-header__inner' },
-      h('span', { class: 'brand', text: `${S.tenant.brandName} · Admin` }), rightOfBar ?? null)),
-    h('main', { id: 'admin-main', class: 'container admin-wrap' }, content));
+const MOUNTS = {
+  booking: mountBookings,
+  pembayaran: mountPayments,
+  produk: (el, c) => mountCatalog(el, c, 'produk'),
+  layanan: (el, c) => mountCatalog(el, c, 'layanan'),
+  portfolio: (el, c) => mountCatalog(el, c, 'portfolio'),
+  brand: mountBrand,
+  jam: mountHours,
+  metode: mountPayMethods,
+};
+
+// Layar tanpa kerangka (masuk, verifikasi email, tanpa akses): kartu di tengah.
+function authScreen(...content) {
+  root().replaceChildren(h('main', { id: 'admin-main', class: 'auth' }, h('div', { class: 'auth__card' },
+    h('p', { class: 'auth__brand', text: S.tenant.brandName }),
+    h('p', { class: 'auth__sub', text: 'Panel admin' }),
+    content)));
 }
 
 async function logout() {
   await signOut(adminAuth);
+  history.replaceState(null, '', location.pathname + location.search);
   showLogin();
 }
 
@@ -33,7 +48,7 @@ function showLogin(msg = '') {
   const email = h('input', { class: 'input', id: 'email', type: 'email', autocomplete: 'username' });
   const pass = h('input', { class: 'input', id: 'password', type: 'password', autocomplete: 'current-password' });
   const btn = h('button', { class: 'btn', type: 'submit', text: 'Masuk' });
-  const form = h('form', { class: 'form narrow', novalidate: true, onsubmit: async (e) => {
+  const form = h('form', { class: 'form', novalidate: true, onsubmit: async (e) => {
     e.preventDefault();
     if (!email.value.trim() || !pass.value) return show('Isi email dan kata sandi.');
     btn.disabled = true; btn.textContent = 'Memeriksa…';
@@ -56,13 +71,13 @@ function showLogin(msg = '') {
     try { await sendPasswordResetEmail(adminAuth, r.email); } catch { /* jangan bocorkan apakah email terdaftar */ }
     toast('Jika email terdaftar, tautan reset telah dikirim.');
   } }));
-  render(null, h('h1', { class: 'section-title', text: 'Masuk' }), form);
+  authScreen(h('h1', { text: 'Masuk' }), form);
 }
 
 function showVerify(user) {
-  render(null,
-    h('h1', { class: 'section-title', text: 'Verifikasi email' }),
-    h('p', { class: 'notice narrow', text: `Email ${user.email} belum terverifikasi. Akses admin mensyaratkan email terverifikasi.` }),
+  authScreen(
+    h('h1', { text: 'Verifikasi email' }),
+    h('p', { class: 'notice', text: `Email ${user.email} belum terverifikasi. Akses admin mensyaratkan email terverifikasi.` }),
     h('div', { class: 'hist__actions' },
       h('button', { class: 'btn', type: 'button', text: 'Kirim ulang email verifikasi', onclick: async () => {
         try { await sendEmailVerification(user); toast('Email verifikasi dikirim.'); } catch { toast('Gagal mengirim. Coba lagi nanti.'); }
@@ -72,9 +87,9 @@ function showVerify(user) {
 }
 
 function showNoAccess() {
-  render(null,
-    h('h1', { class: 'section-title', text: 'Tidak ada akses' }),
-    h('p', { class: 'notice narrow', text: 'Akun ini tidak memiliki akses admin ke situs ini.' }),
+  authScreen(
+    h('h1', { text: 'Tidak ada akses' }),
+    h('p', { class: 'notice', text: 'Akun ini tidak memiliki akses admin ke situs ini.' }),
     h('button', { class: 'btn btn--ghost', type: 'button', text: 'Keluar', onclick: logout }));
 }
 
@@ -90,37 +105,52 @@ async function enter(user) {
   showApp(user, m.role);
 }
 
+// Kerangka: bilah atas, menu (kiri di layar lebar, geser mendatar di ponsel), judul halaman, isi.
 function showApp(user, role) {
-  const tabs = [['booking', 'Booking', mountBookings]];
-  if (['owner', 'finance_manager'].includes(role)) tabs.push(['pembayaran', 'Pembayaran', mountPayments]);
-  if (['owner', 'admin', 'content_manager'].includes(role)) {
-    for (const [key, label] of [['produk', 'Produk'], ['layanan', 'Layanan'], ['portfolio', 'Portfolio']]) {
-      tabs.push([key, label, (el, c) => mountCatalog(el, c, key)]);
-    }
+  const tabs = tabsFor(role);
+  const body = h('div', { id: 'admin-content' });
+  const headTitle = h('h1', {});
+  const headDesc = h('p', {});
+  const nav = h('nav', { class: 'snav', 'aria-label': 'Menu admin' });
+  for (const g of groupTabs(tabs)) {
+    nav.append(h('p', { class: 'snav__group', text: g.group }));
+    for (const t of g.tabs) nav.append(h('button', { class: 'snav__item', type: 'button', 'data-key': t.key, text: t.label, onclick: () => select(t.key) }));
   }
-  if (['owner', 'admin'].includes(role)) tabs.push(['brand', 'Brand', mountBrand], ['jam', 'Jam buka', mountHours]);
-  const content = h('div', { id: 'admin-content' });
-  const nav = h('nav', { class: 'tabs', 'aria-label': 'Menu admin' });
-  const select = (key) => {
-    nav.querySelectorAll('button').forEach((b) => b.setAttribute('aria-current', b.dataset.key === key ? 'page' : 'false'));
-    content.replaceChildren(h('div', { class: 'skeleton', style: 'height:8rem' }));
-    tabs.find((t) => t[0] === key)[2](content, { tenant: S.tenant, role, user });
-  };
-  for (const [key, label] of tabs) nav.append(h('button', { class: 'tab', type: 'button', 'data-key': key, text: label, onclick: () => select(key) }));
-  const bar = h('div', { class: 'admin-bar' },
-    h('span', { text: `${user.email} · ${ROLE_LABEL[role] ?? role}` }),
-    h('button', { class: 'btn btn--ghost btn--small', type: 'button', text: 'Keluar', onclick: logout }));
-  render(bar, nav, content);
-  select(role === 'finance_manager' ? 'pembayaran' : 'booking');
+
+  function select(key) {
+    const tab = tabs.find((t) => t.key === key) ?? tabs[0];
+    nav.querySelectorAll('.snav__item').forEach((b) => {
+      const on = b.dataset.key === tab.key;
+      b.setAttribute('aria-current', on ? 'page' : 'false');
+      if (on) b.scrollIntoView({ inline: 'center', block: 'nearest' });
+    });
+    headTitle.textContent = tab.title;
+    headDesc.textContent = tab.desc;
+    document.title = `${tab.title} — Admin ${S.tenant.brandName}`;
+    history.replaceState(null, '', `#${tab.key}`);
+    body.replaceChildren(h('div', { class: 'skeleton', style: 'height:8rem' }));
+    MOUNTS[tab.key](body, { tenant: S.tenant, role, user });
+  }
+
+  root().replaceChildren(h('div', { class: 'shell' },
+    h('header', { class: 'appbar' },
+      h('span', { class: 'appbar__brand', text: S.tenant.brandName }),
+      h('span', { class: 'appbar__user', text: `${user.email} · ${ROLE_LABEL[role] ?? role}` }),
+      h('button', { class: 'btn btn--small', type: 'button', text: 'Keluar', onclick: logout })),
+    nav,
+    h('main', { id: 'admin-main', class: 'smain' }, h('header', { class: 'ahead' }, headTitle, headDesc), body)));
+
+  const fromHash = location.hash.slice(1);
+  select(tabs.some((t) => t.key === fromHash) ? fromHash : defaultTab(role));
 }
 
 async function start() {
   try { S.tenant = await resolveTenant(); }
   catch (e) { console.error(e); S.tenant = null; }
   if (!S.tenant) {
-    root().replaceChildren(h('main', { class: 'container admin-wrap' },
-      h('h1', { class: 'section-title', text: 'Situs tidak ditemukan' }),
-      h('p', { class: 'empty', text: 'Alamat ini belum terhubung ke situs mana pun.' })));
+    root().replaceChildren(h('main', { class: 'auth' }, h('div', { class: 'auth__card' },
+      h('h1', { text: 'Situs tidak ditemukan' }),
+      h('p', { class: 'empty', text: 'Alamat ini belum terhubung ke situs mana pun.' }))));
     return;
   }
   applyTheme(S.tenant.theme);
