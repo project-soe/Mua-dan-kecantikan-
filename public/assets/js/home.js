@@ -7,7 +7,6 @@ import { h } from './dom.js';
 import { rupiah, formatDuration } from './format.js';
 import { imageUrl } from './media.js';
 import { renderHeader, renderFooter } from './layout.js';
-import { createSlider } from './slider.js';
 import { openDetail } from './lightbox.js';
 import { priceInfo, stockInfo, sortShowcase } from './detail-model.js';
 
@@ -125,8 +124,10 @@ async function fillShowcase(tenant, { kind, name, catCollection, gridId, section
       box.replaceChildren(h('p', { class: 'empty', text: emptyText }));
       return;
     }
-    box.className = ''; // lepas kelas grid; susunan diatur slider
-    box.replaceChildren(createSlider({ label, items, render: (it) => showcaseCard(kind, it, cats) }));
+    // Beranda menampilkan beberapa kartu, satu foto utama per item.
+    // Galeri hanya dibuka di lightbox setelah kartu dipilih.
+    box.className = 'grid';
+    box.replaceChildren(...items.map((it) => showcaseCard(kind, it, cats)));
   } catch (e) {
     console.error(`Gagal memuat ${name}`, e);
     box.replaceChildren(h('p', { class: 'empty', text: 'Konten ini belum dapat dimuat. Coba muat ulang halaman.' }));
