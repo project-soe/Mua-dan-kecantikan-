@@ -4,7 +4,7 @@ import { tenantHref } from './tenant.js';
 import { imageUrl } from './media.js';
 
 const LINKS = [
-  ['/#layanan', 'Layanan'], ['/#produk', 'Produk'], ['/#portfolio', 'Portfolio'],
+  ['/#layanan', 'Layanan'], ['/#produk', 'Produk'], ['/galeri/', 'Galeri'],
   ['/booking/', 'Booking'], ['/riwayat/', 'Riwayat'], ['/#jam', 'Jam Operasional'],
 ];
 

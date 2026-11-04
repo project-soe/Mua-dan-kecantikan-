@@ -117,3 +117,9 @@
     (hanya pengaturan tampilan; penegakan akses tetap di backend dan Rules).
 68. Layar Metode bayar: perubahan rekening memicu dialog kata sandi (reautentikasi) bila login sudah lebih dari 15 menit.
     Logika penyusunan muatan ada di paymethods-model.js (dites unit).
+69. Galeri publik (/galeri/) memakai data portfolio yang ada (kategori = serviceCategories). Filter kategori tersimpan di
+    hash URL, foto unggulan tampil besar dengan jarak minimal 6 foto, muat bertahap 18 foto. Angka di pengantar selalu
+    dari data nyata (tanpa angka karangan).
+70. Tombol booking di jendela detail galeri memilih layanan otomatis bila tepat satu layanan sekategori, selain itu ke
+    halaman booking umum. Tautan menu "Portfolio" digantikan "Galeri"; bagian Portfolio di beranda tetap sebagai cuplikan.
+71. Testimoni (tahap 2): koleksi reviews dengan izin klien wajib sebelum terbit; tampil di galeri dan beranda.

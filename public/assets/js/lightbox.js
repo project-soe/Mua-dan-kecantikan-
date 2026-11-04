@@ -31,7 +31,7 @@ function slideNode(s, title, i) {
 }
 
 // Jendela detail: tumbuh dari kartu yang diklik, galeri geser, deskripsi singkat.
-export function openDetail({ kind, item, categoryName, originEl }) {
+export function openDetail({ kind, item, categoryName, originEl, cta }) {
   const isProduct = kind === 'product';
   const title = (isProduct ? item.name : item.title) ?? '';
   const slides = slideList(kind, item);
@@ -66,7 +66,7 @@ export function openDetail({ kind, item, categoryName, originEl }) {
     stock ? h('span', { class: `badge${stock.level === 'out' ? ' badge--out' : ''}`, text: stock.label }) : null,
     item.description ? h('p', { class: 'lb__desc', text: item.description }) : null,
     facts.length ? h('dl', { class: 'lb__facts' }, facts.map(([k, v]) => [h('dt', { text: k }), h('dd', { text: v })])) : null,
-    isProduct ? null : h('div', { class: 'lb__actions' }, h('a', { class: 'btn', href: tenantHref('/booking/'), text: 'Booking layanan' })));
+    isProduct ? null : h('div', { class: 'lb__actions' }, h('a', { class: 'btn', href: cta?.href ?? tenantHref('/booking/'), text: cta?.label ?? 'Booking layanan' })));
 
   let closing = false;
   const close = () => {

@@ -150,3 +150,5 @@ dialog.lightbox.is-closing .lb__panel { animation: lb-out .25s var(--ease) both;
 .cmp__range::-moz-range-track { height: 100%; background: transparent; }
 .cmp__range::-moz-range-thumb { width: 2.75rem; height: 100%; border: 0; }
 .cmp:focus-within { outline: 2px solid var(--color-accent); outline-offset: -4px; }
+
+.section-more { margin-top: 1.5rem; text-align: center; }
