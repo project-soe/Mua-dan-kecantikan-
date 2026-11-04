@@ -18,7 +18,8 @@ export function slideList(kind, item) {
   const add = (path) => {
     if (typeof path === 'string' && path && !seen.has(path)) { seen.add(path); out.push({ type: 'image', path }); }
   };
-  add(item.coverImage);
+  // Portfolio lama/tertentu mungkin hanya memiliki thumbnailImage; tetap jadikan foto utama slide pertama.
+  add(item.coverImage ?? item.thumbnailImage);
   if (kind === 'portfolio' && item.beforeImage && item.afterImage) {
     out.push({ type: 'compare', before: item.beforeImage, after: item.afterImage });
   }
