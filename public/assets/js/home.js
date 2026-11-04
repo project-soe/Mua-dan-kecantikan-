@@ -77,7 +77,14 @@ function showcaseCard(kind, item, catNames) {
     h('div', { class: 'card__body' }, showcaseBody(kind, item, title)),
     h('button', { class: 'card__hit', type: 'button', 'aria-haspopup': 'dialog', 'aria-label': `Lihat detail: ${title}`, onclick: () => {
       card.classList.add('is-lit');
-      openDetail({ kind, item, categoryName: catNames.get(item.categoryId) ?? null, originEl: card });
+      openDetail({
+        kind,
+        item,
+        categoryName: catNames.get(item.categoryId) ?? null,
+        originEl: card,
+        // Portfolio memerlukan CTA eksplisit; produk tidak memakai CTA.
+        ...(kind === 'portfolio' ? { cta: { href: tenantHref('/booking/'), label: 'Booking layanan' } } : {}),
+      });
     } }));
   return card;
 }
