@@ -71,7 +71,7 @@ export function openDetail({ kind, item, categoryName, originEl, cta }) {
       price.saving ? h('span', { class: 'badge', text: `Hemat ${rupiah(price.saving)}` }) : null) : null,
     stock ? h('span', { class: `badge${stock.level === 'out' ? ' badge--out' : ''}`, text: stock.label }) : null,
     item.description ? h('p', { class: 'lb__desc', text: item.description }) : null,
-    facts.length ? h('dl', { class: 'lb__facts' }, facts.map(([k, v]) => [h('dt', { text: k }), h('dd', { text: v })])) : null,
+    facts.length ? h('dl', { class: 'lb__facts' }, facts.flatMap(([k, v]) => [h('dt', { text: k }), h('dd', { text: v })])) : null,
     bookable ? h('div', { class: 'lb__actions' }, h('a', { class: 'btn', href: bookHref, text: bookLabel })) : null);
 
   let closing = false;
