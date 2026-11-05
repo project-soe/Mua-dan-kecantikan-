@@ -16,6 +16,8 @@ export const TABS = [
     title: 'Layanan', desc: 'Atur layanan MUA: harga, deposit, durasi, dan foto.' },
   { key: 'portfolio', label: 'Portfolio', group: 'Katalog', roles: CONTENT,
     title: 'Portfolio', desc: 'Foto hasil MUA yang tampil di beranda.' },
+  { key: 'testimoni', label: 'Testimoni', group: 'Katalog', roles: CONTENT,
+    title: 'Testimoni', desc: 'Kutipan klien yang tampil di galeri dan beranda. Wajib ada izin klien.' },
   { key: 'brand', label: 'Brand', group: 'Pengaturan', roles: SETTINGS,
     title: 'Brand', desc: 'Nama, label, logo, dan gambar utama situs.' },
   { key: 'jam', label: 'Jam buka', group: 'Pengaturan', roles: SETTINGS,

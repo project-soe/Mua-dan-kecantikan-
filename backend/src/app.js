@@ -11,6 +11,7 @@ import { createProduct, updateProduct, updateProductStock, publishProduct, delet
 import { createCategory, updateCategory } from './categories/handlers.js';
 import { createService, updateService, publishService } from './services/handlers.js';
 import { createPortfolio, updatePortfolio, publishPortfolio } from './portfolio/handlers.js';
+import { createReview, updateReview, publishReview, deleteReview } from './reviews/handlers.js';
 import { updateBusinessHours } from './bookings/hours.js';
 import { checkBookingAvailability } from './bookings/availability.js';
 import { createBooking } from './bookings/create.js';
@@ -52,6 +53,10 @@ export function createApp({ db, auth, clock = Date.now, proofInfo, allowedOrigin
   staff('createPortfolio', ROLE_GROUPS.CONTENT, createPortfolio);
   staff('updatePortfolio', ROLE_GROUPS.CONTENT, updatePortfolio);
   staff('publishPortfolio', ROLE_GROUPS.CONTENT, publishPortfolio);
+  staff('createReview', ROLE_GROUPS.CONTENT, createReview);
+  staff('updateReview', ROLE_GROUPS.CONTENT, updateReview);
+  staff('publishReview', ROLE_GROUPS.CONTENT, publishReview);
+  staff('deleteReview', ROLE_GROUPS.ADMIN, deleteReview);
 
   staff('updateBusinessHours', ROLE_GROUPS.ADMIN, updateBusinessHours);
   staff('updateStoreHours', ROLE_GROUPS.ADMIN, updateStoreHours);

@@ -11,6 +11,7 @@ import { mountCatalog } from './admin-catalog.js';
 import { mountBrand } from './admin-brand.js';
 import { mountHours } from './admin-hours.js';
 import { mountPayMethods } from './admin-paymethods.js';
+import { mountReviews } from './admin-reviews.js';
 import { tabsFor, defaultTab, groupTabs } from './admin-nav.js';
 
 const ROLE_LABEL = { owner: 'Owner', admin: 'Admin', content_manager: 'Content Manager', finance_manager: 'Finance Manager' };
@@ -23,6 +24,7 @@ const MOUNTS = {
   produk: (el, c) => mountCatalog(el, c, 'produk'),
   layanan: (el, c) => mountCatalog(el, c, 'layanan'),
   portfolio: (el, c) => mountCatalog(el, c, 'portfolio'),
+  testimoni: mountReviews,
   brand: mountBrand,
   jam: mountHours,
   metode: mountPayMethods,

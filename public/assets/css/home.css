@@ -173,3 +173,16 @@ dialog.lightbox.is-closing .lb__panel { animation: lb-out .25s var(--ease) both;
 .slider--wide .slider__track > .card { flex-basis: min(20rem, 82%); }
 @media (min-width: 48rem) { .slider--wide .slider__track > .card { flex-basis: 21rem; } }
 .card--showcase .card__body .btn { position: relative; z-index: 2; justify-self: start; }
+
+/* Testimoni klien */
+.t-section { background: color-mix(in srgb, var(--color-secondary) 14%, var(--color-bg)); }
+.t-summary { margin: 0; color: var(--color-text-soft); }
+.slider__track > .t-card { flex: 0 0 min(22rem, 86%); scroll-snap-align: start; }
+.t-card { display: grid; gap: 1.1rem; align-content: space-between; padding: 1.5rem; background: var(--color-surface); border: 1px solid var(--color-border); }
+.t-stars { margin: 0; color: var(--color-accent); font-size: 1.15rem; letter-spacing: .15em; }
+.t-quote { margin: 0; }
+.t-quote p { font: italic 400 1.25rem/1.5 var(--font-heading); }
+.t-who { display: flex; align-items: center; gap: .85rem; }
+.t-who > div { display: grid; gap: .1rem; min-width: 0; }
+.t-avatar { width: 3rem; height: 3rem; border-radius: 50%; object-fit: cover; flex: none; }
+.t-avatar--ph { display: grid; place-items: center; background: var(--color-primary); color: #fff; font: 500 1.05rem/1 var(--font-heading); letter-spacing: .06em; }

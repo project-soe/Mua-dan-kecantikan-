@@ -9,6 +9,7 @@ import { imageUrl } from './media.js';
 import { renderHeader, renderFooter } from './layout.js';
 import { openDetail } from './lightbox.js';
 import { priceInfo, stockInfo, sortShowcase } from './detail-model.js';
+import { testimonialSection } from './testimonials.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -127,6 +128,17 @@ async function fillShowcase(tenant, { kind, name, catCollection, gridId, section
   } finally { box.removeAttribute('aria-busy'); }
 }
 
+// Testimoni klien (bagian muncul hanya bila ada testimoni yang terbit)
+async function fillTestimonials(tenant) {
+  try {
+    const reviews = await loadPublished(tenant.id, 'reviews', 12);
+    if (!reviews.length) return;
+    const cats = await loadCategoryNames(tenant.id, 'serviceCategories');
+    const anchor = $('portfolio').hidden ? $('produk') : $('portfolio');
+    anchor.after(testimonialSection({ reviews, catNames: cats }));
+  } catch (e) { console.error('Gagal memuat testimoni', e); }
+}
+
 function observeReveals() {
   const els = document.querySelectorAll('.reveal:not(.is-visible)');
   if (!('IntersectionObserver' in window)) { els.forEach((e) => e.classList.add('is-visible')); return; }
@@ -165,6 +177,7 @@ async function main() {
       sectionId: 'portfolio', label: 'Hasil MUA', hideWhenEmpty: true,
       moreHref: '/galeri/', moreLabel: 'Lihat galeri lengkap' }),
   ]);
+  await fillTestimonials(tenant);
   observeReveals();
 }
 

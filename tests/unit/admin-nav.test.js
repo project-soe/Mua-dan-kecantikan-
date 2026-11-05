@@ -5,9 +5,9 @@ import { TABS, tabsFor, defaultTab, groupTabs } from '../../public/assets/js/adm
 const keys = (role) => tabsFor(role).map((t) => t.key);
 
 test('menu per peran', () => {
-  assert.deepEqual(keys('owner'), ['booking', 'pembayaran', 'produk', 'layanan', 'portfolio', 'brand', 'jam', 'metode']);
-  assert.deepEqual(keys('admin'), ['booking', 'produk', 'layanan', 'portfolio', 'brand', 'jam']);
-  assert.deepEqual(keys('content_manager'), ['booking', 'produk', 'layanan', 'portfolio']);
+  assert.deepEqual(keys('owner'), ['booking', 'pembayaran', 'produk', 'layanan', 'portfolio', 'testimoni', 'brand', 'jam', 'metode']);
+  assert.deepEqual(keys('admin'), ['booking', 'produk', 'layanan', 'portfolio', 'testimoni', 'brand', 'jam']);
+  assert.deepEqual(keys('content_manager'), ['booking', 'produk', 'layanan', 'portfolio', 'testimoni']);
   assert.deepEqual(keys('finance_manager'), ['booking', 'pembayaran', 'metode']);
   assert.deepEqual(keys('customer'), []);
   assert.deepEqual(keys(undefined), []);

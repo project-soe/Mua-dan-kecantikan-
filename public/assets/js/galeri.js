@@ -6,6 +6,7 @@ import { tenantHref } from './tenant.js';
 import { openDetail } from './lightbox.js';
 import { sortShowcase } from './detail-model.js';
 import { categoryChips, filterItems, featureIds, ctaFor, galleryStats } from './gallery-model.js';
+import { testimonialSection } from './testimonials.js';
 
 const PAGE = 18;
 const $ = (id) => document.getElementById(id);
@@ -73,6 +74,8 @@ async function main() {
     return;
   }
   items = sortShowcase('portfolio', items);
+  let reviews = [];
+  try { reviews = await loadPublished(tenant.id, 'reviews', 24); } catch (e) { console.error('Gagal memuat testimoni', e); }
   if (!items.length) { root.replaceChildren(emptyState()); return; }
 
   const catName = new Map(cats.map((c) => [c.id, c.name]));
@@ -132,7 +135,8 @@ async function main() {
     bookingButtons()));
 
   root.replaceChildren(intro, filterBar,
-    h('section', { class: 'section g-body' }, h('div', { class: 'container' }, count, grid, more)), cta);
+    h('section', { class: 'section g-body' }, h('div', { class: 'container' }, count, grid, more)),
+    ...(reviews.length ? [testimonialSection({ reviews, catNames: catName })] : []), cta);
   render();
 }
 

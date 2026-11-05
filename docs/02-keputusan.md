@@ -127,3 +127,8 @@
     seperti produk dan portfolio. Kartu tetap punya tombol Booking langsung.
 73. Layanan punya thumbnailImage (folder services/thumbs, sudah tercakup aturan Storage services/**). Foto lama tanpa thumbnail
     tetap tampil memakai foto utama; unggah ulang foto utama di admin untuk membuat thumbnail.
+74. Testimoni (koleksi reviews): dibuat staf (bukan dikirim pelanggan), wajib consentConfirmed sebelum terbit, izin tidak bisa
+    dicabut saat terbit, hapus oleh owner/admin kapan saja (penarikan izin klien). Audit tidak memuat isi kutipan/nama klien.
+75. Ringkasan penilaian di situs dihitung dari data nyata; rata-rata hanya tampil mulai 3 testimoni (MIN_FOR_AVERAGE).
+76. Foto klien di tenants/{id}/reviews/ (publik baca, staf konten tulis, maks 4 MB). Tanpa foto: inisial nama.
+    Pengaman perubahan: tag git sebelum-testimoni; berkas baru tidak menimpa; tambalan berkas lama idempoten.
