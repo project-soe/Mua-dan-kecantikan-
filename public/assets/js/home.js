@@ -7,7 +7,6 @@ import { h } from './dom.js';
 import { rupiah, formatDuration } from './format.js';
 import { imageUrl } from './media.js';
 import { renderHeader, renderFooter } from './layout.js';
-import { createSlider } from './slider.js';
 import { openDetail } from './lightbox.js';
 import { priceInfo, stockInfo, sortShowcase } from './detail-model.js';
 
@@ -54,13 +53,11 @@ function showcaseBody(kind, item, title) {
     ];
   }
   if (kind === 'service') {
+    // Ringkasan layanan ditampilkan di dialog agar kartu tetap fokus pada satu foto utama.
     return [
       h('h3', { class: 'card__title', text: title }),
-      item.description ? h('p', { class: 'card__text', text: item.description }) : null,
       h('p', { class: 'meta', text: formatDuration(item.durationMinutes) }),
       h('p', { class: 'price', text: rupiah(item.price) }),
-      item.bookingEnabled === false ? null
-        : h('a', { class: 'btn btn--ghost', href: tenantHref(`/booking/?service=${encodeURIComponent(item.id)}`), text: 'Booking' }),
       more,
     ];
   }
@@ -79,7 +76,10 @@ function showcaseCard(kind, item, catNames) {
     h('div', { class: 'card__body' }, showcaseBody(kind, item, title)),
     h('button', { class: 'card__hit', type: 'button', 'aria-haspopup': 'dialog', 'aria-label': `Lihat detail: ${title}`, onclick: () => {
       card.classList.add('is-lit');
-      openDetail({ kind, item, categoryName: catNames.get(item.categoryId) ?? null, originEl: card });
+      openDetail({
+        kind, item, categoryName: catNames.get(item.categoryId) ?? null, originEl: card,
+        ...(kind === 'portfolio' ? { cta: { href: tenantHref('/booking/'), label: 'Booking layanan' } } : {}),
+      });
     } }));
   return card;
 }
@@ -115,8 +115,10 @@ async function fillShowcase(tenant, { kind, name, catCollection, gridId, section
       box.replaceChildren(h('p', { class: 'empty', text: emptyText }));
       return;
     }
-    box.className = ''; // lepas kelas grid; susunan diatur slider
-    box.replaceChildren(createSlider({ label, items, wide, render: (it) => showcaseCard(kind, it, cats) }));
+    // Beranda menampilkan kartu dengan satu foto utama. Slider galeri dan deskripsi
+    // berada di dialog detail setelah kartu dipilih, bukan sebagai slider luar.
+    box.className = 'grid';
+    box.replaceChildren(...items.map((it) => showcaseCard(kind, it, cats)));
     if (moreHref) box.append(h('p', { class: 'section-more' }, h('a', { class: 'btn btn--ghost', href: tenantHref(moreHref), text: moreLabel })));
   } catch (e) {
     console.error(`Gagal memuat ${name}`, e);
