@@ -16,7 +16,7 @@ function parse(body, t, requireAll) {
   put('categoryId', body.categoryId === undefined ? undefined : idOf(body.categoryId, 'categoryId'));
   put('eventLabel', str(body.eventLabel, 'eventLabel', { max: 80, optional: true }));
   put('rating', int(body.rating, 'rating', { min: 1, max: 5, optional: opt }));
-  put('quote', str(body.quote, 'quote', { min: 10, max: 600, optional: opt }));
+  put('quote', str(body.quote, 'quote', { min: 20, max: 600, optional: opt }));
   put('source', str(body.source, 'source', { max: 40, optional: true }));
   put('photo', storagePath(body.photo, 'photo', `tenants/${t}/reviews/`, { optional: true }));
   put('featured', optBool(body.featured, 'featured'));
