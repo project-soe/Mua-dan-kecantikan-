@@ -90,6 +90,22 @@ html[data-header="dark"] .nav a:hover { color: #fff; }
 @media (min-width: 48rem) { .slider__track > .card { flex-basis: 17rem; } }
 
 html.lb-open { overflow: hidden; }
+/* Cegah galeri horizontal mendorong panel dialog melewati viewport. */
+dialog.lightbox,
+dialog.lightbox .lb__panel,
+dialog.lightbox .lb__media,
+dialog.lightbox .lb__track,
+dialog.lightbox .lb__info {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+dialog.lightbox .lb__panel { width: 100%; overflow-x: hidden; }
+dialog.lightbox .lb__media { width: 100%; overflow: hidden; }
+dialog.lightbox .lb__track { width: 100%; overflow-x: auto; }
+dialog.lightbox .lb__slide { min-width: 0; box-sizing: border-box; }
+dialog.lightbox .lb__info { overflow-wrap: anywhere; }
+
 dialog.lightbox { padding: 0; border: 0; background: transparent; width: min(64rem, 96vw); max-width: 96vw; max-height: none; overflow: visible; color: var(--color-text); }
 dialog.lightbox::backdrop { background: rgba(20, 16, 15, .74); backdrop-filter: blur(4px); animation: lb-fade .3s var(--ease) both; }
 dialog.lightbox.is-closing::backdrop { animation: lb-fade-out .25s var(--ease) both; }
