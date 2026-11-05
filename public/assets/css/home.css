@@ -152,3 +152,8 @@ dialog.lightbox.is-closing .lb__panel { animation: lb-out .25s var(--ease) both;
 .cmp:focus-within { outline: 2px solid var(--color-accent); outline-offset: -4px; }
 
 .section-more { margin-top: 1.5rem; text-align: center; }
+
+/* Layanan sebagai slider: kartu lebih lebar; tombol Booking berada di atas area klik kartu */
+.slider--wide .slider__track > .card { flex-basis: min(20rem, 82%); }
+@media (min-width: 48rem) { .slider--wide .slider__track > .card { flex-basis: 21rem; } }
+.card--showcase .card__body .btn { position: relative; z-index: 2; justify-self: start; }

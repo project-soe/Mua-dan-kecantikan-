@@ -67,7 +67,8 @@ const CONFIGS = {
       { name: 'locationMode', label: 'Lokasi layanan', type: 'select', default: 'studio',
         options: [['studio', 'Di studio'], ['customer_location', 'Di lokasi pelanggan'], ['both', 'Studio atau lokasi pelanggan']] },
       { name: 'bookingEnabled', label: 'Bisa dibooking', type: 'checkbox', default: true },
-      { name: 'coverImage', label: 'Foto utama (wajib untuk menerbitkan)', type: 'image' },
+      { name: 'coverImage', label: 'Foto utama (wajib untuk menerbitkan)', type: 'image', autoThumb: 'thumbnailImage' }, // thumbnail layanan
+      { name: 'thumbnailImage', type: 'image', hidden: true },
       { name: 'gallery', label: 'Foto tambahan (maks. 12)', type: 'gallery' },
     ],
     summary: (s) => `${rupiah(s.price)} · ${formatDuration(s.durationMinutes)}${s.bookingEnabled === false ? ' · booking dimatikan' : ''}`,

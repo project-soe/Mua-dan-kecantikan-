@@ -1,4 +1,8 @@
 // Logika murni untuk kartu dan jendela detail (tanpa DOM) agar bisa dites.
+import { formatDuration, rupiah } from './format.js';
+
+const LOCATION_LABEL = { studio: 'Di studio', customer_location: 'Di lokasi Anda', both: 'Studio atau lokasi Anda' };
+
 export function priceInfo(p) {
   const promo = typeof p.discountPrice === 'number' && p.discountPrice < p.price;
   return { current: promo ? p.discountPrice : p.price, original: promo ? p.price : null, saving: promo ? p.price - p.discountPrice : 0 };
@@ -18,8 +22,7 @@ export function slideList(kind, item) {
   const add = (path) => {
     if (typeof path === 'string' && path && !seen.has(path)) { seen.add(path); out.push({ type: 'image', path }); }
   };
-  // Portfolio lama/tertentu mungkin hanya memiliki thumbnailImage; tetap jadikan foto utama slide pertama.
-  add(item.coverImage ?? item.thumbnailImage);
+  add(item.coverImage);
   if (kind === 'portfolio' && item.beforeImage && item.afterImage) {
     out.push({ type: 'compare', before: item.beforeImage, after: item.afterImage });
   }
@@ -32,6 +35,10 @@ export function factsFor(kind, item) {
   if (kind === 'product') {
     if (item.brand) rows.push(['Merek', item.brand]);
     if (Number.isInteger(item.weightGrams) && item.weightGrams > 0) rows.push(['Berat', `${item.weightGrams} g`]);
+  } else if (kind === 'service') {
+    if (item.durationMinutes > 0) rows.push(['Durasi', formatDuration(item.durationMinutes)]);
+    if (item.depositAmount > 0) rows.push(['Deposit', rupiah(item.depositAmount)]);
+    if (Object.hasOwn(LOCATION_LABEL, item.locationMode)) rows.push(['Lokasi', LOCATION_LABEL[item.locationMode]]);
   } else {
     if (item.modelName) rows.push(['Model', item.modelName]);
     if (item.artistName) rows.push(['MUA', item.artistName]);
@@ -39,8 +46,12 @@ export function factsFor(kind, item) {
   return rows;
 }
 
-// Produk tersedia lebih dulu; portfolio unggulan lebih dulu lalu menurut urutan. Pengurutan stabil.
+// Produk tersedia lebih dulu; layanan yang bisa dibooking lalu menurut nama; portfolio unggulan lalu menurut urutan.
 export function sortShowcase(kind, items) {
+  if (kind === 'service') {
+    return [...items].sort((a, b) => Number(a.bookingEnabled === false) - Number(b.bookingEnabled === false)
+      || String(a.name ?? '').localeCompare(String(b.name ?? ''), 'id'));
+  }
   const key = kind === 'product'
     ? (x) => [Number(!(Number(x.stock ?? 0) > 0)), 0]
     : (x) => [Number(x.featured !== true), Number.isFinite(x.sortOrder) ? x.sortOrder : 0];

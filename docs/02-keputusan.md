@@ -123,3 +123,7 @@
 70. Tombol booking di jendela detail galeri memilih layanan otomatis bila tepat satu layanan sekategori, selain itu ke
     halaman booking umum. Tautan menu "Portfolio" digantikan "Galeri"; bagian Portfolio di beranda tetap sebagai cuplikan.
 71. Testimoni (tahap 2): koleksi reviews dengan izin klien wajib sebelum terbit; tampil di galeri dan beranda.
+72. Layanan di beranda kini slider dengan jendela detail (galeri geser, durasi, deposit, lokasi, tombol "Booking layanan ini"),
+    seperti produk dan portfolio. Kartu tetap punya tombol Booking langsung.
+73. Layanan punya thumbnailImage (folder services/thumbs, sudah tercakup aturan Storage services/**). Foto lama tanpa thumbnail
+    tetap tampil memakai foto utama; unggah ulang foto utama di admin untuk membuat thumbnail.

@@ -9,7 +9,7 @@ import { auditRef, uniqueRef, slugKey, pickSlug, assertExists } from '../common.
 
 const bad = (m) => new AppError('invalid-argument', m);
 const KEYS = ['name', 'categoryId', 'description', 'price', 'depositAmount', 'durationMinutes',
-  'preparationTimeMinutes', 'bookingEnabled', 'locationMode', 'coverImage', 'gallery',
+  'preparationTimeMinutes', 'bookingEnabled', 'locationMode', 'coverImage', 'thumbnailImage', 'gallery',
   'seoTitle', 'seoDescription', 'shareImage'];
 const serviceRef = (db, t, id) => db.doc(`tenants/${t}/services/${id}`);
 
@@ -28,6 +28,7 @@ function parse(body, t, requireAll) {
   put('bookingEnabled', optBool(body.bookingEnabled, 'bookingEnabled'));
   if (body.locationMode !== undefined) put('locationMode', oneOf(body.locationMode, LOCATION_MODE, 'locationMode'));
   put('coverImage', storagePath(body.coverImage, 'coverImage', prefix, { optional: true }));
+  put('thumbnailImage', storagePath(body.thumbnailImage, 'thumbnailImage', prefix, { optional: true }));
   put('gallery', storagePaths(body.gallery, 'gallery', prefix, { max: 12, optional: true }));
   put('seoTitle', str(body.seoTitle, 'seoTitle', { max: 70, optional: true }));
   put('seoDescription', str(body.seoDescription, 'seoDescription', { max: 160, optional: true }));

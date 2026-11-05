@@ -47,7 +47,7 @@ test('planSize mengecilkan tanpa memperbesar', () => {
 });
 test('imagePaths per area', () => {
   assert.deepEqual(imagePaths('t', 'products', 'id1', 'webp'), { full: 'tenants/t/products/optimized/id1.webp', thumb: 'tenants/t/products/thumbnails/id1.webp' });
-  assert.deepEqual(imagePaths('t', 'services', 'id1', 'jpg'), { full: 'tenants/t/services/id1.jpg', thumb: null });
+  assert.deepEqual(imagePaths('t', 'services', 'id1', 'jpg'), { full: 'tenants/t/services/id1.jpg', thumb: 'tenants/t/services/thumbs/id1.jpg' });
   assert.equal(imagePaths('t', 'portfolio', 'i', 'webp', 'jpg').thumb, 'tenants/t/portfolio/thumbnails/i.jpg');
   assert.throws(() => imagePaths('t', 'lain', 'i', 'webp'));
 });

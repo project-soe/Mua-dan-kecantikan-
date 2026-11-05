@@ -3,7 +3,8 @@ import { h } from './dom.js';
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Baris kartu yang bisa digeser (sentuh/scroll) dengan tombol sebelumnya/berikutnya.
-export function createSlider({ label, items, render }) {
+// wide: kartu lebih lebar (dipakai untuk layanan).
+export function createSlider({ label, items, render, wide = false }) {
   const track = h('div', { class: 'slider__track', tabindex: '0', role: 'region', 'aria-label': label }, items.map(render));
   const prev = h('button', { class: 'slider__btn', type: 'button', 'aria-label': `${label}: geser ke sebelumnya`, onclick: () => go(-1) }, '‹');
   const next = h('button', { class: 'slider__btn', type: 'button', 'aria-label': `${label}: geser ke berikutnya`, onclick: () => go(1) }, '›');
@@ -21,5 +22,5 @@ export function createSlider({ label, items, render }) {
   if ('ResizeObserver' in window) new ResizeObserver(update).observe(track);
   requestAnimationFrame(update);
 
-  return h('div', { class: 'slider' }, bar, track);
+  return h('div', { class: `slider${wide ? ' slider--wide' : ''}` }, bar, track);
 }

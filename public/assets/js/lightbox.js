@@ -30,10 +30,12 @@ function slideNode(s, title, i) {
   return h('img', { src: imageUrl(s.path), alt: `${title} — foto ${i + 1}`, decoding: 'async' });
 }
 
-// Jendela detail: tumbuh dari kartu yang diklik, galeri geser, deskripsi singkat.
+// Jendela detail untuk produk, layanan, dan hasil rias: tumbuh dari kartu yang diklik, galeri geser, deskripsi.
+// kind: 'product' | 'service' | 'portfolio'. cta: { href, label } menggantikan tombol booking bawaan.
 export function openDetail({ kind, item, categoryName, originEl, cta }) {
   const isProduct = kind === 'product';
-  const title = (isProduct ? item.name : item.title) ?? '';
+  const isService = kind === 'service';
+  const title = ((isProduct || isService) ? item.name : item.title) ?? '';
   const slides = slideList(kind, item);
   if (!slides.length) slides.push({ type: 'none' });
   const multi = slides.length > 1;
@@ -53,20 +55,24 @@ export function openDetail({ kind, item, categoryName, originEl, cta }) {
   };
   track.addEventListener('scroll', () => requestAnimationFrame(sync), { passive: true });
 
-  const price = isProduct ? priceInfo(item) : null;
+  const price = isProduct ? priceInfo(item) : (isService ? { current: item.price, original: null, saving: 0 } : null);
   const stock = isProduct ? stockInfo(item.stock) : null;
   const facts = factsFor(kind, item);
+  const bookable = !isProduct && !(isService && item.bookingEnabled === false);
+  const bookHref = cta?.href ?? tenantHref(isService ? `/booking/?service=${encodeURIComponent(item.id)}` : '/booking/');
+  const bookLabel = cta?.label ?? (isService ? 'Booking layanan ini' : 'Booking layanan');
+  const eyebrow = categoryName ?? (isProduct ? 'Produk kecantikan' : (isService ? 'Layanan' : 'Hasil MUA'));
   const info = h('div', { class: 'lb__info' },
-    h('p', { class: 'eyebrow', text: categoryName ?? (isProduct ? 'Produk kecantikan' : 'Hasil MUA') }),
+    h('p', { class: 'eyebrow', text: eyebrow }),
     h('h2', { id: 'lb-title', class: 'lb__title', text: title }),
-    price ? h('div', { class: 'lb__price' },
+    price && Number.isFinite(price.current) ? h('div', { class: 'lb__price' },
       price.original ? h('s', { text: rupiah(price.original) }) : null,
       h('strong', { text: rupiah(price.current) }),
       price.saving ? h('span', { class: 'badge', text: `Hemat ${rupiah(price.saving)}` }) : null) : null,
     stock ? h('span', { class: `badge${stock.level === 'out' ? ' badge--out' : ''}`, text: stock.label }) : null,
     item.description ? h('p', { class: 'lb__desc', text: item.description }) : null,
     facts.length ? h('dl', { class: 'lb__facts' }, facts.map(([k, v]) => [h('dt', { text: k }), h('dd', { text: v })])) : null,
-    isProduct ? null : h('div', { class: 'lb__actions' }, h('a', { class: 'btn', href: cta?.href ?? tenantHref('/booking/'), text: cta?.label ?? 'Booking layanan' })));
+    bookable ? h('div', { class: 'lb__actions' }, h('a', { class: 'btn', href: bookHref, text: bookLabel })) : null);
 
   let closing = false;
   const close = () => {
