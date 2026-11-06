@@ -22,7 +22,8 @@ export function setOrderShippingQuote(db, clock = Date.now) {
       const snap = await tx.get(ref);
       if (!snap.exists) throw new AppError('resource-not-found', 'Pesanan tidak ditemukan');
       const order = snap.data();
-      if (order.orderStatus !== 'pending' || order.shippingStatus !== 'quote_requested') {
+      if (order.orderStatus !== 'pending' || order.shippingStatus !== 'quote_requested'
+        || (order.expiresAt?.toMillis && order.expiresAt.toMillis() <= clock())) {
         throw new AppError('failed-precondition', 'Pesanan tidak sedang menunggu penawaran ongkir');
       }
       const totalAmount = order.subtotal + shippingCost;
@@ -52,6 +53,7 @@ export function acceptOrderShippingQuote(db, clock = Date.now) {
       if (!snap.exists || snap.data().customerId !== uid) throw new AppError('resource-not-found', 'Pesanan tidak ditemukan');
       const order = snap.data();
       if (order.orderStatus !== 'pending' || order.shippingStatus !== 'quoted'
+        || (order.expiresAt?.toMillis && order.expiresAt.toMillis() <= clock())
         || !Number.isSafeInteger(order.totalAmount) || order.totalAmount < order.subtotal) {
         throw new AppError('failed-precondition', 'Penawaran ongkir belum tersedia atau sudah diproses');
       }
