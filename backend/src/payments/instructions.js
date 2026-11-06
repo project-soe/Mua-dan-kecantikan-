@@ -14,7 +14,8 @@ export function getPaymentInstructions(db) {
       const [oSnap, pSnap] = await db.getAll(ordersCol(db, t).doc(orderId), publicPayRef(db, t));
       if (!oSnap.exists || oSnap.data().customerId !== req.user.uid) throw new AppError('resource-not-found', 'Pesanan tidak ditemukan');
       const o = oSnap.data();
-      if (o.orderStatus !== 'awaiting_payment' || o.pendingPaymentId || !Number.isSafeInteger(o.totalAmount)) {
+      if (o.orderStatus !== 'awaiting_payment' || o.pendingPaymentId || !Number.isSafeInteger(o.totalAmount)
+        || (o.expiresAt?.toMillis && o.expiresAt.toMillis() <= Date.now())) {
         throw new AppError('failed-precondition', 'Pesanan belum dapat menerima pembayaran');
       }
       const pub = pSnap.exists ? pSnap.data() : { methods: [] };
