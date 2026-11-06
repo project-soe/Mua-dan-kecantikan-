@@ -27,7 +27,10 @@ export function bookingAction(b) {
 
 export function orderStatusText(o) {
   switch (o.orderStatus) {
-    case 'pending': return o.shippingStatus === 'quoted' ? 'Menunggu persetujuan ongkir' : 'Menunggu kutipan ongkir';
+    case 'pending':
+      if (o.shippingStatus === 'quoted') return 'Menunggu persetujuan ongkir';
+      if (o.shippingStatus === 'quote_requested' || o.totalAmount == null) return 'Menunggu kutipan ongkir';
+      return 'Menunggu diproses';
     case 'awaiting_payment': return 'Menunggu pembayaran';
     case 'payment_verification': return 'Pembayaran sedang diverifikasi';
     case 'paid': return 'Sudah dibayar';
