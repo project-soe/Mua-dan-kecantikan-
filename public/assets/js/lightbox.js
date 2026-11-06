@@ -3,6 +3,7 @@ import { rupiah } from './format.js';
 import { imageUrl } from './media.js';
 import { tenantHref } from './tenant.js';
 import { priceInfo, stockInfo, slideList, factsFor } from './detail-model.js';
+import { addCartItem } from './cart-store.js';
 
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -72,6 +73,12 @@ export function openDetail({ kind, item, categoryName, originEl, cta }) {
     stock ? h('span', { class: `badge${stock.level === 'out' ? ' badge--out' : ''}`, text: stock.label }) : null,
     item.description ? h('p', { class: 'lb__desc', text: item.description }) : null,
     facts.length ? h('dl', { class: 'lb__facts' }, facts.flatMap(([k, v]) => [h('dt', { text: k }), h('dd', { text: v })])) : null,
+    isProduct ? h('div', { class: 'lb__actions' },
+      h('a', { class: 'btn btn--ghost', href: tenantHref('/keranjang/'), text: 'Lihat keranjang' }),
+      h('button', { class: 'btn', type: 'button', text: 'Tambah ke keranjang', disabled: stock.level === 'out', onclick: (e) => {
+        try { addCartItem(item); e.currentTarget.textContent = 'Ditambahkan ✓'; e.currentTarget.disabled = true; }
+        catch { e.currentTarget.textContent = 'Gagal menambahkan'; }
+      } })) : null,
     bookable ? h('div', { class: 'lb__actions' }, h('a', { class: 'btn', href: bookHref, text: bookLabel })) : null);
 
   let closing = false;
