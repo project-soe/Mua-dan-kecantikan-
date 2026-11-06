@@ -6,6 +6,7 @@ import { applyTheme } from './theme.js';
 import { h } from './dom.js';
 import { askDialog, toast } from './admin-ui.js';
 import { mountBookings } from './admin-bookings.js';
+import { mountOrders } from './admin-orders.js';
 import { mountPayments } from './admin-payments.js';
 import { mountCatalog } from './admin-catalog.js';
 import { mountBrand } from './admin-brand.js';
@@ -20,6 +21,7 @@ const root = () => document.getElementById('admin-root');
 
 const MOUNTS = {
   booking: mountBookings,
+  pesanan: mountOrders,
   pembayaran: mountPayments,
   produk: (el, c) => mountCatalog(el, c, 'produk'),
   layanan: (el, c) => mountCatalog(el, c, 'layanan'),
