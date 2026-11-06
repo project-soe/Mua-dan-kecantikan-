@@ -8,6 +8,8 @@ const SETTINGS = ['owner', 'admin'];
 export const TABS = [
   { key: 'booking', label: 'Booking', group: 'Operasional', roles: STAFF,
     title: 'Booking', desc: 'Daftar booking pelanggan. Konfirmasi atau batalkan jadwal.' },
+  { key: 'pesanan', label: 'Pesanan produk', group: 'Operasional', roles: STAFF,
+    title: 'Pesanan produk', desc: 'Kelola pesanan toko, periksa alamat, dan tetapkan ongkir untuk pelanggan.' },
   { key: 'pembayaran', label: 'Pembayaran', group: 'Operasional', roles: MONEY,
     title: 'Pembayaran', desc: 'Periksa bukti transfer, lalu verifikasi atau tolak.' },
   { key: 'produk', label: 'Produk', group: 'Katalog', roles: CONTENT,
