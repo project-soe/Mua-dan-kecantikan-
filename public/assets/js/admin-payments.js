@@ -12,7 +12,7 @@ const STATUS = { submitted: 'Menunggu verifikasi', verified: 'Terverifikasi', re
 const fmtTs = (ts) => (ts?.toDate ? ts.toDate().toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' }) : '');
 
 export async function mountPayments(root, ctx) {
-  const state = { filter: 'submitted', items: [], bookings: new Map() };
+  const state = { filter: 'submitted', items: [], bookings: new Map(), orders: new Map() };
   const list = h('div', { class: 'hist-list', 'aria-live': 'polite' });
   const select = h('select', { class: 'input', id: 'pay-filter', style: 'max-width:16rem',
     onchange: (e) => { state.filter = e.target.value; draw(); } },
@@ -32,6 +32,11 @@ export async function mountPayments(root, ctx) {
       state.bookings = new Map(await Promise.all(ids.map(async (id) => {
         const b = await getDoc(doc(adminDb, 'tenants', ctx.tenant.id, 'bookings', id));
         return [id, b.exists() ? b.data() : null];
+      })));
+      const orderIds = [...new Set(state.items.map((p) => p.orderId).filter(Boolean))];
+      state.orders = new Map(await Promise.all(orderIds.map(async (id) => {
+        const o = await getDoc(doc(adminDb, 'tenants', ctx.tenant.id, 'orders', id));
+        return [id, o.exists() ? o.data() : null];
       })));
       draw();
     } catch (e) {
@@ -78,7 +83,8 @@ export async function mountPayments(root, ctx) {
   }
 
   function card(p) {
-    const b = state.bookings.get(p.bookingId);
+    const b = p.bookingId ? state.bookings.get(p.bookingId) : null;
+    const o = p.orderId ? state.orders.get(p.orderId) : null;
     const actions = [h('button', { class: 'btn btn--ghost btn--small', type: 'button', text: 'Lihat bukti', onclick: () => viewProof(p) })];
     if (p.paymentStatus === 'submitted') {
       actions.push(h('button', { class: 'btn btn--small', type: 'button', text: 'Verifikasi', onclick: () => verifyIt(p) }));
@@ -86,11 +92,11 @@ export async function mountPayments(root, ctx) {
     }
     return h('article', { class: 'hist' },
       h('div', { class: 'hist__head' },
-        h('strong', { text: b?.bookingNumber ?? 'Booking tidak ditemukan' }),
+        h('strong', { text: b?.bookingNumber ?? o?.orderNumber ?? 'Transaksi tidak ditemukan' }),
         h('span', { class: 'badge', text: STATUS[p.paymentStatus] ?? p.paymentStatus })),
-      b ? h('p', { text: b.customerName }) : null,
+      b ? h('p', { text: b.customerName }) : (o ? h('p', { text: o.customerName }) : null),
       h('p', { class: 'price', text: rupiah(p.amount) }),
-      h('p', { class: 'meta', text: `${PURPOSE[p.purpose] ?? p.purpose} · ${METHOD_LABEL[p.method] ?? p.method} · ${fmtTs(p.submittedAt)}` }),
+      h('p', { class: 'meta', text: `${p.orderId ? 'Pesanan produk' : (PURPOSE[p.purpose] ?? p.purpose)} · ${METHOD_LABEL[p.method] ?? p.method} · ${fmtTs(p.submittedAt)}` }),
       p.paymentStatus === 'rejected' && p.rejectionReason ? h('p', { class: 'meta', text: `Alasan penolakan: ${p.rejectionReason}` }) : null,
       h('div', { class: 'hist__actions' }, actions));
   }
