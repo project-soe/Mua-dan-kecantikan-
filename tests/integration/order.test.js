@@ -169,6 +169,30 @@ describe('createOrder', () => {
   });
 });
 
+describe('penawaran ongkir dan persetujuan pelanggan', () => {
+  it('hanya owner/admin menetapkan ongkir; total dihitung server dari subtotal', async () => {
+    const id = await mk('gC1', [{ productId: 'prodA', quantity: 1 }]);
+    assert.equal((await call('setOrderShippingQuote', { tenantId: T, orderId: id, shippingCost: 15000 }, 'gContent')).status, 403);
+    assert.equal((await call('setOrderShippingQuote', { tenantId: T, orderId: id, shippingCost: -1 }, 'gAdmin')).status, 400);
+    const r = await call('setOrderShippingQuote', { tenantId: T, orderId: id, shippingCost: 15000, shippingNotes: 'Reguler' }, 'gAdmin');
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.data.totalAmount, 115000);
+    const saved = await getO(id);
+    assert.equal(saved.shippingStatus, 'quoted');
+    assert.equal(saved.totalAmount, 115000);
+  });
+  it('hanya pemilik menerima penawaran; setelah setuju pesanan menunggu pembayaran', async () => {
+    const id = await mk('gC2', [{ productId: 'prodB', quantity: 1 }]);
+    await call('setOrderShippingQuote', { tenantId: T, orderId: id, shippingCost: 10000 }, 'gOwner');
+    assert.equal((await call('acceptOrderShippingQuote', { tenantId: T, orderId: id }, 'gC3')).status, 404);
+    const r = await call('acceptOrderShippingQuote', { tenantId: T, orderId: id }, 'gC2');
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    assert.equal(r.body.data.totalAmount, 160000);
+    assert.equal((await getO(id)).orderStatus, 'awaiting_payment');
+    assert.equal((await call('acceptOrderShippingQuote', { tenantId: T, orderId: id }, 'gC2')).status, 412);
+  });
+});
+
 describe('cancelOrder', () => {
   const cancel = (user, orderId, o = {}) => call('cancelOrder', { tenantId: T, orderId, ...o }, user);
 
