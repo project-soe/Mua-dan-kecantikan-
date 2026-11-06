@@ -33,10 +33,28 @@ async function main() {
     return;
   }
 
-  const summary = h('div', { class: 'summary' },
-    ...items.map((item) => h('p', { text: `${item.quantity} × ${item.name}` })),
-    h('strong', { class: 'pay-amount', text: money(items.reduce((sum, item) => sum + item.price * item.quantity, 0)) }),
-    h('p', { class: 'meta', text: 'Subtotal sementara · ongkir akan dikonfirmasi admin setelah pesanan dibuat.' }),
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const summary = h('aside', { class: 'checkout-summary' },
+    h('p', { class: 'eyebrow', text: 'Ringkasan belanja' }),
+    h('h2', { class: 'checkout-summary__title', text: 'Pesanan Anda' }),
+    h('div', { class: 'checkout-summary__items' },
+      ...items.map((item) => h('div', { class: 'checkout-summary__item' },
+        h('span', { text: `${item.quantity} × ${item.name}` }),
+        h('strong', { text: money(item.price * item.quantity) }),
+      )),
+    ),
+    h('div', { class: 'checkout-summary__total' },
+      h('span', { text: 'Subtotal produk' }),
+      h('strong', { text: money(subtotal) }),
+    ),
+    h('p', { class: 'checkout-summary__note', text: 'Ongkos kirim belum termasuk. Admin akan menghitung ongkir berdasarkan alamat tujuan.' }),
+    h('div', { class: 'checkout-payment-note' },
+      h('span', { class: 'checkout-payment-note__icon', 'aria-hidden': 'true', text: '✦' }),
+      h('div', {},
+        h('strong', { text: 'Pembayaran setelah ongkir disetujui' }),
+        h('p', { text: 'Pilih transfer bank, e-wallet, atau QRIS setelah admin mengirim ongkir dan Anda menyetujui total akhir.' }),
+      ),
+    ),
   );
 
   const fields = [
@@ -61,25 +79,36 @@ async function main() {
     placeholder: 'Catatan untuk penjual (opsional)',
   });
   const error = h('div', { 'aria-live': 'polite' });
-  const submit = h('button', { class: 'btn', type: 'submit', text: 'Buat pesanan' });
+  const submit = h('button', { class: 'btn checkout-submit', type: 'submit', text: 'Konfirmasi pesanan' });
   const idempotencyKey = crypto.randomUUID();
 
-  const form = h('form', { class: 'form' },
-    h('fieldset', {},
-      h('legend', { text: 'Data penerima' }),
+  const form = h('form', { class: 'form checkout-form' },
+    h('div', { class: 'checkout-progress', 'aria-label': 'Tahapan pemesanan' },
+      h('div', { class: 'checkout-progress__step is-active' }, h('span', { text: '01' }), h('strong', { text: 'Data & alamat' })),
+      h('div', { class: 'checkout-progress__line' }),
+      h('div', { class: 'checkout-progress__step' }, h('span', { text: '02' }), h('strong', { text: 'Konfirmasi ongkir' })),
+      h('div', { class: 'checkout-progress__line' }),
+      h('div', { class: 'checkout-progress__step' }, h('span', { text: '03' }), h('strong', { text: 'Pembayaran' })),
+    ),
+    h('fieldset', { class: 'checkout-fieldset' },
+      h('legend', { text: 'Informasi penerima' }),
       ...fields.map(([name, label]) => h('div', { class: 'field' },
         h('label', { for: name, text: label }),
         Object.assign(controls[name], { id: name }),
       )),
     ),
-    h('fieldset', {},
-      h('legend', { text: 'Catatan' }),
+    h('fieldset', { class: 'checkout-fieldset' },
+      h('legend', { text: 'Catatan tambahan' }),
       h('div', { class: 'field' },
         h('label', { for: 'customerNotes', text: 'Catatan pesanan' }),
         Object.assign(notes, { id: 'customerNotes' }),
       ),
     ),
-    summary, error, submit,
+    h('div', { class: 'checkout-form__footer' },
+      h('p', { class: 'meta', text: 'Dengan melanjutkan, Anda mengirim pesanan untuk dikonfirmasi. Belum ada pembayaran yang ditagihkan pada tahap ini.' }),
+      error,
+      submit,
+    ),
   );
 
   form.addEventListener('submit', async (event) => {
@@ -121,7 +150,7 @@ async function main() {
     }
   });
 
-  root.replaceChildren(form);
+  root.replaceChildren(h('div', { class: 'checkout-layout' }, h('div', { class: 'checkout-main' }, form), summary));
 }
 
 main().catch((error) => {
