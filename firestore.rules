@@ -58,7 +58,7 @@ service cloud.firestore {
 
       // Transaksi: milik sendiri atau staf
       match /bookings/{id} {
-        allow read: if ownsDoc() || hasRole(t, ['owner', 'admin', 'content_manager', 'finance_manager']);
+        allow read: if ownsDoc() || hasRole(t, ['owner', 'admin', 'finance_manager']);
         allow write: if false;
       }
       match /orders/{id} {
