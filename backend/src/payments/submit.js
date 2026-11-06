@@ -5,6 +5,7 @@ import { rejectUnknown, int, idOf, oneOf, storagePath } from '../validate.js';
 import { auditEntry } from '../audit.js';
 import { auditRef } from '../common.js';
 import { bookingsCol, settingsRef, readSlots, activeCount, prunedHolds } from '../bookings/common.js';
+import { ordersCol } from '../orders/handlers.js';
 import { bad, publicPayRef, paymentsCol, payableOptions, sha, MAX_PROOF_BYTES } from './common.js';
 
 export function submitPaymentProof(db, clock, proofInfo) {
@@ -13,8 +14,8 @@ export function submitPaymentProof(db, clock, proofInfo) {
     const uid = req.user.uid;
     rejectUnknown(req.body, ['tenantId', 'bookingId', 'orderId', 'paymentMethod', 'proofStoragePath', 'amount']);
     if (req.body.bookingId !== undefined && req.body.orderId !== undefined) throw bad('Isi bookingId atau orderId, bukan keduanya');
-    if (req.body.orderId !== undefined) throw new AppError('failed-precondition', 'Pembayaran pesanan produk belum tersedia');
-    const bookingId = idOf(req.body.bookingId, 'bookingId');
+    const orderId = req.body.orderId !== undefined ? idOf(req.body.orderId, 'orderId') : null;
+    const bookingId = orderId ? null : idOf(req.body.bookingId, 'bookingId');
     const method = oneOf(req.body.paymentMethod, PAYMENT_METHODS, 'paymentMethod');
     const amount = int(req.body.amount, 'amount', { min: 1 });
     const path = storagePath(req.body.proofStoragePath, 'proofStoragePath', `tenants/${t}/payment-proofs/${uid}/`);
@@ -25,6 +26,42 @@ export function submitPaymentProof(db, clock, proofInfo) {
     if (!info) throw bad('File bukti pembayaran tidak ditemukan');
     if (!/^image\/(jpeg|png|webp|avif)$/.test(info.contentType ?? '')) throw bad('Bukti pembayaran harus berupa gambar');
     if (!(info.size > 0 && info.size <= MAX_PROOF_BYTES)) throw bad('Ukuran bukti pembayaran tidak valid');
+
+    if (orderId) {
+      const orderRef = ordersCol(db, t).doc(orderId);
+      const paymentRef = paymentsCol(db, t).doc();
+      const proofKey = db.doc(`tenants/${t}/uniqueKeys/proof_${sha(path)}`);
+      let orderResult;
+      await db.runTransaction(async (tx) => {
+        const orderSnap = await tx.get(orderRef);
+        if (!orderSnap.exists || orderSnap.data().customerId !== uid) throw new AppError('resource-not-found', 'Pesanan tidak ditemukan');
+        const order = orderSnap.data();
+        const keySnap = await tx.get(proofKey);
+        if (keySnap.exists) {
+          const key = keySnap.data();
+          if (key.uid === uid && key.orderId === orderId && order.pendingPaymentId === key.paymentId) {
+            orderResult = { paymentId: key.paymentId, paymentStatus: 'submitted', orderStatus: order.orderStatus };
+            return;
+          }
+          throw new AppError('already-exists', 'Bukti pembayaran ini sudah pernah dipakai');
+        }
+        if (order.orderStatus !== 'awaiting_payment' || order.pendingPaymentId) throw new AppError('failed-precondition', 'Pesanan belum menerima pembayaran atau pembayaran sedang diverifikasi');
+        if (amount !== order.totalAmount) throw new AppError('payment-mismatch', 'Nominal pembayaran harus sama dengan total pesanan');
+        const pubSnap = await tx.get(publicPayRef(db, t));
+        if (!pubSnap.exists || !pubSnap.data().methods?.some((m) => m.method === method && m.enabled)) throw bad('Metode pembayaran tidak tersedia');
+        const ts = FieldValue.serverTimestamp();
+        tx.set(paymentRef, { orderId, bookingId: null, customerId: uid, method, amount, purpose: 'order',
+          proofImagePath: path, paymentStatus: 'submitted', submittedAt: ts, verifiedBy: null, verifiedAt: null,
+          rejectionReason: null, createdAt: ts });
+        tx.set(proofKey, { paymentId: paymentRef.id, orderId, uid, createdAt: ts });
+        tx.update(orderRef, { pendingPaymentId: paymentRef.id, orderStatus: 'payment_verification', updatedAt: ts });
+        tx.set(auditRef(db, t), auditEntry({ actorUid: uid, tenantId: t, action: 'submitOrderPaymentProof',
+          resourceType: 'payment', resourceId: paymentRef.id, summary: { orderId, amount, method } }));
+        orderResult = { paymentId: paymentRef.id, paymentStatus: 'submitted', orderStatus: 'payment_verification' };
+      });
+      res.json({ ok: true, data: orderResult });
+      return;
+    }
 
     const bookingRef = bookingsCol(db, t).doc(bookingId);
     const paymentRef = paymentsCol(db, t).doc();
