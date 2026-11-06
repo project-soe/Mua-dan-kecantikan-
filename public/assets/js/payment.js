@@ -122,7 +122,7 @@ export function renderPaymentPanel({ container, tenantId, booking, order, status
 
   const panel = h('section', {
     class: 'payment-panel',
-    'aria-label': 'Pembayaran booking',
+    'aria-label': isOrder ? 'Pembayaran pesanan produk' : 'Pembayaran booking',
   }, button);
 
   container.append(panel);
@@ -296,7 +296,7 @@ export function renderPaymentPanel({ container, tenantId, booking, order, status
           statusNode.textContent = 'Menunggu verifikasi pembayaran';
           panel.replaceChildren(
             h('h3', { class: 'card__title', text: 'Bukti pembayaran berhasil dikirim' }),
-            h('p', { class: 'notice', text: 'Pembayaran Anda sedang menunggu verifikasi admin. Simpan nomor booking untuk referensi.' }),
+            h('p', { class: 'notice', text: 'Pembayaran Anda sedang menunggu verifikasi admin. Simpan nomor transaksi untuk referensi.' }),
             h('p', { class: 'meta', text: `Status pembayaran: ${result.paymentStatus}` }),
             h('p', { class: 'meta', text: `${isOrder ? 'Nomor pesanan' : 'Nomor booking'}: ${isOrder ? order.orderNumber : booking.bookingNumber}` }),
           );
