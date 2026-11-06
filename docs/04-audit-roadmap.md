@@ -21,7 +21,8 @@ Fondasi aplikasi sudah terbentuk:
 1. **Otomatisasi pekerjaan kedaluwarsa belum terpasang.**
    - `expireStaleBookings` dan `expireStaleOrders` tersedia sebagai endpoint staf, tetapi belum ada scheduler/cron produksi.
    - Dampak: status booking/pesanan lama dapat tertinggal; stok pesanan yang kedaluwarsa dapat tetap tertahan sampai endpoint dipanggil.
-   - Tindakan: pilih scheduler terautentikasi (misalnya Cloud Scheduler ke endpoint backend dengan autentikasi service-to-service) atau worker terjadwal yang aman. Jangan membuka endpoint tanpa autentikasi.
+   - Implementasi awal: worker proses backend pada `backend/src/maintenance/expiry-worker.js`, dijalankan otomatis oleh `backend/src/server.js` setiap 60 detik (dapat diatur melalui `EXPIRY_SWEEP_INTERVAL_MS`). Worker menemukan tenant aktif, lalu memanggil handler expiry yang sama dengan endpoint admin. Proses ini tidak membuka endpoint publik baru.
+   - Batasan operasional: worker hanya berjalan selama proses backend hidup. Hosting harus menjalankan proses Node.js secara persisten; jika backend diskalakan ke beberapa instance, transaksi Firestore menjaga proses expiry tetap aman dari pemulihan stok ganda. Pantau log worker dan pastikan ada minimal satu instance aktif.
 
 2. **Hosting backend dan penyimpanan produksi belum diputuskan.**
    - Firebase Hosting telah dikonfigurasi, tetapi API Express membutuhkan target hosting/proses backend yang stabil.
@@ -80,7 +81,8 @@ Fondasi aplikasi sudah terbentuk:
 
 ## Catatan eksekusi
 
-- Workflow CI pertama ditambahkan pada `.github/workflows/ci.yml`.
+- Workflow CI pertama ditambahkan pada `.github/workflows/ci.yml` dan eksekusi terbaru yang diperiksa berhasil.
+- Worker kedaluwarsa ditambahkan pada `backend/src/maintenance/expiry-worker.js` dan diaktifkan dari `backend/src/server.js`.
 - Workflow menjalankan `npm ci`, `npm run check:frontend`, `npm run test:unit`, `npm run test:rules`, dan `npm run test:integration`.
 - Status lulus/gagal CI harus dibaca dari GitHub Actions setelah workflow berjalan. Pembuatan workflow bukan bukti tes sudah lulus.
 - Tidak ada merge ke `main` atau deployment yang dilakukan dalam audit ini.
