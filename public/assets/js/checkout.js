@@ -33,6 +33,7 @@ if (!items.length) {
   const notes = h('textarea', { class: 'input', name: 'customerNotes', rows: '3', maxlength: '500', placeholder: 'Catatan untuk penjual (opsional)' });
   const error = h('div', { 'aria-live': 'polite' });
   const submit = h('button', { class: 'btn', type: 'submit', text: 'Buat pesanan' });
+  const idempotencyKey = crypto.randomUUID();
   const form = h('form', { class: 'form' },
     h('fieldset', {}, h('legend', { text: 'Data penerima' }),
       ...fields.map(([name, label]) => h('div', { class: 'field' }, h('label', { for: name, text: label }),
@@ -47,7 +48,7 @@ if (!items.length) {
       await ensureUser();
       const data = Object.fromEntries(fields.map(([name]) => [name, controls[name].value.trim()]));
       const result = await call('createOrder', {
-        tenantId: tenant.id, idempotencyKey: crypto.randomUUID(),
+        tenantId: tenant.id, idempotencyKey,
         items: items.map(({ productId, quantity }) => ({ productId, quantity })),
         shippingAddress: data, shippingMethod: 'manual_quote',
         customerNotes: notes.value.trim(),
