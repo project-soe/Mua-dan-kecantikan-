@@ -33,27 +33,39 @@ function render() {
 
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const rows = items.map((item) => {
-    const body = h('div', { class: 'cart-item__body' },
-      h('strong', { text: item.name }),
-      h('p', { class: 'meta', text: rupiah(item.price) }),
-      h('label', { class: 'field' },
-        'Jumlah',
-        h('input', {
-          class: 'input', type: 'number', min: '1', max: '20',
-          value: String(item.quantity), inputmode: 'numeric',
-          onchange: (event) => {
-            setCartQuantity(item.productId, event.currentTarget.value);
-            render();
-          },
-        }),
-      ),
+    const quantity = h('div', { class: 'cart-quantity', 'aria-label': 'Atur jumlah produk' },
       h('button', {
-        class: 'btn btn--ghost btn--small', type: 'button', text: 'Hapus',
-        onclick: () => { removeCartItem(item.productId); render(); },
+        class: 'cart-quantity__button', type: 'button', text: '−',
+        'aria-label': `Kurangi jumlah ${item.name}`,
+        disabled: item.quantity <= 1,
+        onclick: () => { setCartQuantity(item.productId, item.quantity - 1); render(); },
+      }),
+      h('span', { class: 'cart-quantity__value', 'aria-live': 'polite', text: String(item.quantity) }),
+      h('button', {
+        class: 'cart-quantity__button', type: 'button', text: '+',
+        'aria-label': `Tambah jumlah ${item.name}`,
+        disabled: item.quantity >= 20,
+        onclick: () => { setCartQuantity(item.productId, item.quantity + 1); render(); },
       }),
     );
-    return h('article', { class: 'hist cart-item' },
-      item.image ? h('img', { src: imageUrl(item.image), alt: item.name, loading: 'lazy' }) : null,
+
+    const body = h('div', { class: 'cart-item__body' },
+      h('div', { class: 'cart-item__heading' },
+        h('strong', { class: 'cart-item__name', text: item.name }),
+        h('button', {
+          class: 'cart-item__remove', type: 'button', text: 'Hapus',
+          'aria-label': `Hapus ${item.name} dari keranjang`,
+          onclick: () => { removeCartItem(item.productId); render(); },
+        }),
+      ),
+      h('p', { class: 'cart-item__price', text: rupiah(item.price) }),
+      h('div', { class: 'cart-item__footer' },
+        quantity,
+        h('strong', { class: 'cart-item__line-total', text: rupiah(item.price * item.quantity) }),
+      ),
+    );
+    return h('article', { class: 'cart-item' },
+      item.image ? h('img', { class: 'cart-item__image', src: imageUrl(item.image), alt: item.name, loading: 'lazy' }) : null,
       body,
     );
   });
