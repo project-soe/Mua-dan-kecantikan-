@@ -34,10 +34,11 @@ before(async () => {
 after(async () => { await env.cleanup(); });
 
 describe('daftar booking untuk dashboard', () => {
-  for (const u of ['ownerA', 'adminA', 'contentA', 'financeA']) {
+  for (const u of ['ownerA', 'adminA', 'financeA']) {
     it(`${u} boleh`, async () => { await assertSucceeds(list(as(u), 'bookings')); });
   }
-  it('pelanggan tanpa filter, owner tenant lain, dan anonim ditolak', async () => {
+  it('content manager, pelanggan tanpa filter, owner tenant lain, dan anonim ditolak', async () => {
+    await assertFails(list(as('contentA'), 'bookings'));
     await assertFails(list(as('c1'), 'bookings'));
     await assertFails(list(as('ownerB'), 'bookings'));
     await assertFails(list(anon(), 'bookings'));
