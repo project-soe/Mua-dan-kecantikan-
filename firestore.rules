@@ -13,7 +13,7 @@ service cloud.firestore {
     function hasRole(t, roles) {
       return isActiveMember(t) && get(mPath(t)).data.role in roles;
     }
-    function ownsDoc() { return signedIn() && resource.data.customerId == request.auth.uid; }
+    function ownsDoc() { return signedIn() && resource.data.keys().hasAny(['customerId']) && resource.data.customerId == request.auth.uid; }
     function publishedOrMember(t) {
       return resource.data.published == true || isActiveMember(t);
     }
@@ -62,7 +62,7 @@ service cloud.firestore {
         allow write: if false;
       }
       match /orders/{id} {
-        allow read: if ownsDoc() || hasRole(t, ['owner', 'admin', 'content_manager', 'finance_manager']);
+        allow read: if ownsDoc() || hasRole(t, ['owner', 'admin', 'finance_manager']);
         allow write: if false;
       }
       match /shipments/{id} {
