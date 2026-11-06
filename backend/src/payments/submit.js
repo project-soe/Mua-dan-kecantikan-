@@ -45,7 +45,10 @@ export function submitPaymentProof(db, clock, proofInfo) {
           }
           throw new AppError('already-exists', 'Bukti pembayaran ini sudah pernah dipakai');
         }
-        if (order.orderStatus !== 'awaiting_payment' || order.pendingPaymentId) throw new AppError('failed-precondition', 'Pesanan belum menerima pembayaran atau pembayaran sedang diverifikasi');
+        if (order.orderStatus !== 'awaiting_payment' || order.pendingPaymentId
+          || (order.expiresAt?.toMillis && order.expiresAt.toMillis() <= clock())) {
+          throw new AppError('failed-precondition', 'Pesanan belum menerima pembayaran, sudah kedaluwarsa, atau pembayaran sedang diverifikasi');
+        }
         if (amount !== order.totalAmount) throw new AppError('payment-mismatch', 'Nominal pembayaran harus sama dengan total pesanan');
         const pubSnap = await tx.get(publicPayRef(db, t));
         if (!pubSnap.exists || !pubSnap.data().methods?.some((m) => m.method === method && m.enabled)) throw bad('Metode pembayaran tidak tersedia');
