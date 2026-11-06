@@ -10,7 +10,7 @@ const MAX_LINES = 20;
 const MAX_QTY = 20;
 const MAX_ACTIVE = 3;
 const HOLD_MINUTES = 1440; // pesanan yang belum dibayar/dikutip kedaluwarsa setelah 24 jam
-const ordersCol = (db, t) => db.collection(`tenants/${t}/orders`);
+export const ordersCol = (db, t) => db.collection(`tenants/${t}/orders`);
 const productRef = (db, t, id) => db.doc(`tenants/${t}/products/${id}`);
 
 function parsePhone(v, name) {
