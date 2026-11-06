@@ -37,6 +37,14 @@ Fondasi aplikasi sudah terbentuk:
    - Rules tests tersedia, tetapi belum menggantikan audit akses lintas tenant, abuse/rate-limit, upload file, CORS, token/session, dan validasi API.
    - Tindakan: tambah tes negatif lintas tenant/role, batas request, file palsu/ukuran, replay/idempotency, serta checklist secret dan konfigurasi Firebase produksi.
 
+### Temuan audit akses data pribadi (PII)
+
+- Temuan: Firestore Rules sebelumnya memberi `content_manager` akses baca langsung ke seluruh dokumen booking dan order. Dokumen ini menyimpan nama, nomor WhatsApp/telepon, serta snapshot alamat pengiriman.
+- Risiko: anggota konten yang tidak membutuhkan data transaksi dapat membaca informasi pribadi pelanggan melalui Firestore SDK.
+- Perbaikan: akses baca dokumen booking/order staf kini dibatasi ke `owner`, `admin`, dan `finance_manager`; pelanggan tetap hanya dapat membaca dokumen miliknya sendiri.
+- Tes regresi: `tests/security/firestore.test.js` memastikan content_manager ditolak untuk booking/order yang memuat PII, sedangkan admin dan finance tetap dapat membaca transaksi sesuai kebutuhan operasional.
+- Catatan: perubahan Rules tidak otomatis membatasi akses melalui backend Admin SDK. Setiap endpoint backend tetap harus menerapkan otorisasi role dan kepemilikan secara eksplisit.
+
 ### P1 — Pengalaman pelanggan dan konversi
 
 5. **Akun pelanggan dan pemulihan riwayat.**
@@ -86,3 +94,10 @@ Fondasi aplikasi sudah terbentuk:
 - Workflow menjalankan `npm ci`, `npm run check:frontend`, `npm run test:unit`, `npm run test:rules`, dan `npm run test:integration`.
 - Status lulus/gagal CI harus dibaca dari GitHub Actions setelah workflow berjalan. Pembuatan workflow bukan bukti tes sudah lulus.
 - Tidak ada merge ke `main` atau deployment yang dilakukan dalam audit ini.
+
+
+## Update audit keamanan 2026-11-06
+
+- Firestore Rules diperketat untuk dokumen `bookings` dan `orders`: role `content_manager` tidak lagi dapat membaca data transaksi staf yang memuat PII.
+- Ditambahkan tes regresi pada `tests/security/firestore.test.js` untuk content_manager, admin, dan finance_manager.
+- Jalankan `npm run test:rules` dan `npm test`/workflow CI sebelum menganggap perubahan keamanan terverifikasi. Jangan deploy Rules ke Firebase produksi sebelum hasil tes hijau.
