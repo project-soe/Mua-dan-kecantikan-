@@ -5,7 +5,7 @@ import { imageUrl } from './media.js';
 
 const LINKS = [
   ['/#layanan', 'Layanan'], ['/#produk', 'Produk'], ['/galeri/', 'Galeri'],
-  ['/booking/', 'Booking'], ['/riwayat/', 'Riwayat'], ['/#jam', 'Jam Operasional'],
+  ['/booking/', 'Booking'], ['/keranjang/', 'Keranjang'], ['/riwayat/', 'Riwayat'], ['/#jam', 'Jam Operasional'],
 ];
 
 export function renderHeader(tenant) {
