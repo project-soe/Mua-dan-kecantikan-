@@ -3,6 +3,7 @@ import { h } from './dom.js';
 import { rupiah } from './format.js';
 import { tenantHref } from './tenant.js';
 import { getCart, setCartQuantity, removeCartItem } from './cart-store.js';
+import { imageUrl } from './media.js';
 
 const root = document.getElementById('cart-root');
 function render() {
@@ -16,7 +17,7 @@ function render() {
   const subtotal = items.reduce((sum, x) => sum + x.price * x.quantity, 0);
   root.replaceChildren(
     h('div', { class: 'cart-list' }, ...items.map((item) => h('article', { class: 'hist cart-item' },
-      item.image ? h('img', { src: item.image, alt: item.name, loading: 'lazy' }) : null,
+      item.image ? h('img', { src: imageUrl(item.image), alt: item.name, loading: 'lazy' }) : null,
       h('div', { class: 'cart-item__body' },
         h('strong', { text: item.name }),
         h('p', { class: 'meta', text: rupiah(item.price) }),
