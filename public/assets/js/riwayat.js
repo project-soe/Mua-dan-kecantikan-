@@ -5,6 +5,8 @@ import { rupiah } from './format.js';
 import { ensureUser } from './auth.js';
 import { tenantHref } from './tenant.js';
 import { bookingStatusText, bookingAction, orderStatusText } from './status.js';
+import { call, ApiError } from './api.js';
+import { renderPaymentPanel } from './payment.js';
 
 const $ = (id) => document.getElementById(id);
 const PAGE = 30;
@@ -28,12 +30,33 @@ function bookingItem(b) {
       href: tenantHref(`/pembayaran/?booking=${encodeURIComponent(b.id)}`), text: act.label }));
 }
 
-function orderItem(o) {
-  return h('article', { class: 'hist' },
+function orderItem(o, tenant) {
+  const article = h('article', { class: 'hist' },
     h('div', { class: 'hist__head' }, h('strong', { text: o.orderNumber }), h('span', { class: 'badge', text: orderStatusText(o) })),
     h('ul', { class: 'meta', style: 'margin:0;padding-left:1.1rem' }, (o.items ?? []).map((i) => h('li', { text: `${i.quantity}× ${i.productName}` }))),
     h('p', { class: 'meta', text: fmtTs(o.createdAt) }),
     h('p', { class: 'price', text: o.totalAmount == null ? `Subtotal ${rupiah(o.subtotal)} · ongkir menyusul` : rupiah(o.totalAmount) }));
+  if (o.shippingStatus === 'quoted' && o.orderStatus === 'pending') {
+    const action = h('button', { class: 'btn', type: 'button', text: 'Setujui ongkir & lanjut bayar' });
+    const feedback = h('div', { 'aria-live': 'polite' });
+    action.addEventListener('click', async () => {
+      action.disabled = true; action.textContent = 'Memproses…'; feedback.replaceChildren();
+      try {
+        const accepted = await call('acceptOrderShippingQuote', { tenantId: tenant.id, orderId: o.id });
+        o.orderStatus = accepted.orderStatus;
+        article.append(feedback);
+        renderPaymentPanel({ container: feedback, tenantId: tenant.id,
+          order: { orderId: o.id, orderNumber: o.orderNumber, totalAmount: accepted.totalAmount },
+          statusNode: h('p', { class: 'notice', text: 'Silakan selesaikan pembayaran.' }) });
+        action.remove();
+      } catch (e) {
+        feedback.replaceChildren(h('p', { class: 'alert', role: 'alert', text: e instanceof ApiError ? e.message : 'Penawaran belum dapat disetujui.' }));
+        action.disabled = false; action.textContent = 'Coba lagi';
+      }
+    });
+    article.append(action, feedback);
+  }
+  return article;
 }
 
 async function fill(tenant, uid, { id, name, render, empty }) {
@@ -66,7 +89,7 @@ async function main() {
 
   await Promise.all([
     fill(tenant, uid, { id: 'bookings', name: 'bookings', render: bookingItem, empty: 'Belum ada booking di sesi ini.' }),
-    fill(tenant, uid, { id: 'orders', name: 'orders', render: orderItem, empty: 'Belum ada pesanan produk. Fitur belanja produk sedang dibangun.' }),
+    fill(tenant, uid, { id: 'orders', name: 'orders', render: (o) => orderItem(o, tenant), empty: 'Belum ada pesanan produk.' }),
   ]);
 }
 
