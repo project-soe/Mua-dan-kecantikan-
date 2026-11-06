@@ -21,6 +21,7 @@ import { getPaymentInstructions } from './payments/instructions.js';
 import { submitPaymentProof } from './payments/submit.js';
 import { verifyPayment } from './payments/verify.js';
 import { createOrder, cancelOrder, expireStaleOrders } from './orders/handlers.js';
+import { setOrderShippingQuote, acceptOrderShippingQuote } from './orders/shipping.js';
 
 export function createApp({ db, auth, clock = Date.now, proofInfo, allowedOrigins = [] }) {
   const app = express();
@@ -65,12 +66,14 @@ export function createApp({ db, auth, clock = Date.now, proofInfo, allowedOrigin
   staff('updatePaymentSettings', ROLE_GROUPS.FINANCE, updatePaymentSettings);
   staff('verifyPayment', ROLE_GROUPS.FINANCE, (d) => verifyPayment(d, clock));
   staff('expireStaleOrders', ROLE_GROUPS.ADMIN, (d) => expireStaleOrders(d, clock));
+  staff('setOrderShippingQuote', ROLE_GROUPS.ADMIN, (d) => setOrderShippingQuote(d, clock));
 
   customer('checkBookingAvailability', checkBookingAvailability);
   customer('createBooking', createBooking);
   customer('getPaymentInstructions', getPaymentInstructions);
   customer('submitPaymentProof', (d, c) => submitPaymentProof(d, c, proofInfo));
   customer('createOrder', createOrder);
+  customer('acceptOrderShippingQuote', (d, c) => acceptOrderShippingQuote(d, c));
   // Pembatalan: pemilik booking atau staf; boleh walau tenant ditangguhkan.
   app.post('/api/cancelBooking', authenticate(auth), loadTenant(db), wrap(cancelBooking(db, clock)));
   app.post('/api/cancelOrder', authenticate(auth), loadTenant(db), wrap(cancelOrder(db)));
