@@ -54,7 +54,7 @@ describe('membuat testimoni', () => {
   });
   it('validasi: penilaian, panjang kutipan, nama, foto, field asing', async () => {
     const cases = [
-      { rating: 0 }, { rating: 6 }, { rating: 4.5 }, { quote: 'terlalu pendek' }, { clientName: 'A' },
+      { rating: 0 }, { rating: 6 }, { rating: 4.5 }, { quote: 'singkat' }, { quote: '123456789' }, { clientName: 'A' },
       { photo: `tenants/${T2}/reviews/x.webp` }, { photo: `tenants/${T}/products/x.webp` }, { photo: `tenants/${T}/reviews/../x.webp` },
       { published: true },
     ];
