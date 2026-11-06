@@ -36,6 +36,15 @@ function orderItem(o, tenant) {
     h('ul', { class: 'meta', style: 'margin:0;padding-left:1.1rem' }, (o.items ?? []).map((i) => h('li', { text: `${i.quantity}× ${i.productName}` }))),
     h('p', { class: 'meta', text: fmtTs(o.createdAt) }),
     h('p', { class: 'price', text: o.totalAmount == null ? `Subtotal ${rupiah(o.subtotal)} · ongkir menyusul` : rupiah(o.totalAmount) }));
+  if (o.orderStatus === 'awaiting_payment' && !o.pendingPaymentId) {
+    const pay = h('div', {});
+    renderPaymentPanel({ container: pay, tenantId: tenant.id,
+      order: { orderId: o.id, orderNumber: o.orderNumber, totalAmount: o.totalAmount },
+      statusNode: h('p', { class: 'notice', text: 'Pesanan menunggu pembayaran.' }) });
+    article.append(pay);
+  } else if (o.orderStatus === 'payment_verification') {
+    article.append(h('p', { class: 'notice', text: 'Bukti pembayaran sedang diperiksa admin.' }));
+  }
   if (o.shippingStatus === 'quoted' && o.orderStatus === 'pending') {
     const action = h('button', { class: 'btn', type: 'button', text: 'Setujui ongkir & lanjut bayar' });
     const feedback = h('div', { 'aria-live': 'polite' });
