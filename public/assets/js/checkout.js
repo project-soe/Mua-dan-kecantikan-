@@ -111,10 +111,10 @@ async function main() {
           h('a', { class: 'btn', href: tenantHref('/riwayat/'), text: 'Lihat riwayat pesanan' }),
         ),
       );
-    } catch (error) {
+    } catch (cause) {
       error.replaceChildren(h('p', {
         class: 'alert', role: 'alert',
-        text: error instanceof ApiError ? error.message : 'Pesanan belum dapat dibuat. Periksa data dan coba lagi.',
+        text: cause instanceof ApiError ? cause.message : 'Pesanan belum dapat dibuat. Periksa data dan coba lagi.',
       }));
       submit.disabled = false;
       submit.textContent = 'Coba buat pesanan lagi';
