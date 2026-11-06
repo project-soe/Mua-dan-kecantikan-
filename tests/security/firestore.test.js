@@ -32,7 +32,8 @@ before(async () => {
       [A + '/products/pub']: { name: 'Lipstik', published: true, stock: 5 },
       [A + '/products/draft']: { name: 'Draft', published: false },
       [B + '/products/draftB']: { name: 'Draft B', published: false },
-      [A + '/orders/o1']: { customerId: 'cust1', totalAmount: 100000 },
+      [A + '/bookings/b-private']: { customerId: 'cust1', customerName: 'Nama Rahasia', customerPhone: '+628123456789' },
+      [A + '/orders/o1']: { customerId: 'cust1', customerName: 'Nama Rahasia', customerPhone: '+628123456789', shippingAddressSnapshot: { street: 'Alamat Rahasia' }, totalAmount: 100000 },
       [A + '/orders/o2']: { customerId: 'cust2', totalAmount: 200000 },
       [A + '/payments/pay1']: { customerId: 'cust1', amount: 100000 },
       [A + '/payments/pay2']: { customerId: 'cust2', amount: 200000 },
@@ -91,22 +92,28 @@ describe('kepemilikan pelanggan', () => {
 });
 
 describe('peran tenant', () => {
-  it('content manager: boleh draft, tidak boleh paymentPrivate/payments/auditLogs', async () => {
+  it('content manager: boleh draft, tidak boleh membaca data transaksi yang berisi PII', async () => {
     const db = as('contentA');
     await assertSucceeds(getDoc(doc(db, A + '/products/draft')));
+    await assertFails(getDoc(doc(db, A + '/bookings/b-private')));
+    await assertFails(getDoc(doc(db, A + '/orders/o1')));
     await assertFails(getDoc(doc(db, A + '/settings/paymentPrivate')));
     await assertFails(getDoc(doc(db, A + '/payments/pay1')));
     await assertFails(getDoc(doc(db, A + '/auditLogs/a1')));
   });
-  it('finance: boleh paymentPrivate dan payments, tidak boleh auditLogs', async () => {
+  it('finance: boleh paymentPrivate, transaksi dan payments, tidak boleh auditLogs', async () => {
     const db = as('financeA');
     await assertSucceeds(getDoc(doc(db, A + '/settings/paymentPrivate')));
+    await assertSucceeds(getDoc(doc(db, A + '/bookings/b-private')));
+    await assertSucceeds(getDoc(doc(db, A + '/orders/o1')));
     await assertSucceeds(getDoc(doc(db, A + '/payments/pay2')));
     await assertFails(getDoc(doc(db, A + '/auditLogs/a1')));
   });
-  it('admin: boleh setting umum, tidak boleh paymentPrivate dan payments', async () => {
+  it('admin: boleh transaksi operasional, tidak boleh paymentPrivate dan payments', async () => {
     const db = as('adminA');
     await assertSucceeds(getDoc(doc(db, A + '/settings/contact')));
+    await assertSucceeds(getDoc(doc(db, A + '/bookings/b-private')));
+    await assertSucceeds(getDoc(doc(db, A + '/orders/o1')));
     await assertFails(getDoc(doc(db, A + '/settings/paymentPrivate')));
     await assertFails(getDoc(doc(db, A + '/payments/pay1')));
   });
