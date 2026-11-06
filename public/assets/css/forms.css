@@ -70,3 +70,13 @@ textarea.input { min-height: 5.5rem; resize: vertical; }
 .hist-list { display: grid; gap: 1rem; }
 .hist { background: var(--color-surface); border: 1px solid var(--color-border); padding: 1.1rem 1.25rem; display: grid; gap: .45rem; justify-items: start; }
 .hist__head { display: flex; gap: .75rem; align-items: center; justify-content: space-between; flex-wrap: wrap; width: 100%; }
+
+.cart-list { display: grid; gap: 1rem; max-width: 48rem; }
+.cart-item { display: grid; grid-template-columns: minmax(5rem, 7rem) minmax(0, 1fr); gap: 1rem; width: 100%; }
+.cart-item > img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+.cart-item__body { min-width: 0; display: grid; gap: .55rem; }
+.cart-item__body strong { overflow-wrap: anywhere; }
+.cart-item__body .field { max-width: 8rem; }
+@media (max-width: 420px) {
+  .cart-item { grid-template-columns: 4.5rem minmax(0, 1fr); padding: .85rem; }
+}
