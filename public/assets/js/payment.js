@@ -121,9 +121,16 @@ export function renderPaymentPanel({ container, tenantId, booking, order, status
   });
 
   const panel = h('section', {
-    class: 'payment-panel',
+    class: 'payment-panel payment-panel--intro',
     'aria-label': isOrder ? 'Pembayaran pesanan produk' : 'Pembayaran booking',
-  }, button);
+  },
+    h('div', { class: 'payment-panel__intro' },
+      h('p', { class: 'eyebrow', text: 'Pembayaran aman' }),
+      h('h3', { class: 'card__title', text: 'Selesaikan pembayaran Anda' }),
+      h('p', { class: 'meta', text: 'Metode pembayaran mengikuti pengaturan resmi Mua Putri.' }),
+    ),
+    button,
+  );
 
   container.append(panel);
 
@@ -150,9 +157,10 @@ export function renderPaymentPanel({ container, tenantId, booking, order, status
       let submitted = false;
 
       const amountBox = h('div', { class: 'payment-options' });
-      const methodSelect = h('select', {
-        class: 'input',
-        'aria-label': 'Metode pembayaran',
+      const methodBox = h('div', {
+        class: 'payment-method-options',
+        role: 'radiogroup',
+        'aria-label': 'Pilih metode pembayaran',
       });
 
       const detailBox = h('div', { class: 'payment-details' });
@@ -191,25 +199,35 @@ export function renderPaymentPanel({ container, tenantId, booking, order, status
         ));
       });
 
-      methods.forEach((method) => {
-        methodSelect.append(h('option', {
-          value: method.method,
-          text: METHOD_LABEL[method.method] ?? method.method,
-        }));
-      });
-
       let detailSequence = 0;
 
       const updateMethod = async () => {
-        selectedMethod = methodSelect.value;
         const sequence = ++detailSequence;
         const method = methods.find((m) => m.method === selectedMethod);
         detailBox.replaceChildren(paymentDetails(method));
-
         if (sequence !== detailSequence) return;
       };
 
-      methodSelect.addEventListener('change', updateMethod);
+      methods.forEach((method, index) => {
+        const radio = h('input', {
+          type: 'radio',
+          name: `payment-method-${transactionId}`,
+          value: method.method,
+          checked: index === 0,
+        });
+        radio.addEventListener('change', () => {
+          selectedMethod = method.method;
+          updateMethod();
+        });
+        methodBox.append(h('label', { class: 'choice payment-method-choice' },
+          radio,
+          h('span', { class: 'choice__body' },
+            h('strong', { text: METHOD_LABEL[method.method] ?? method.method }),
+            h('span', { class: 'meta', text: method.method === 'qris' ? 'Bayar dengan kode QR' : 'Pembayaran manual' }),
+          ),
+        ));
+      });
+
       await updateMethod();
 
       fileInput.addEventListener('change', () => {
@@ -233,15 +251,27 @@ export function renderPaymentPanel({ container, tenantId, booking, order, status
           })
         : null;
 
+      panel.classList.remove('payment-panel--intro');
       panel.replaceChildren(
-        h('h3', { class: 'card__title', text: 'Instruksi Pembayaran' }),
-        h('p', { class: 'pay-amount', text: rupiah(transaction.totalAmount) }),
+        h('div', { class: 'payment-panel__heading' },
+          h('p', { class: 'eyebrow', text: 'Tahap pembayaran' }),
+          h('h3', { class: 'card__title', text: 'Instruksi Pembayaran' }),
+          h('p', { class: 'meta', text: isOrder ? `Pesanan ${order.orderNumber}` : `Booking ${booking.bookingNumber}` }),
+        ),
+        h('div', { class: 'payment-panel__total' },
+          h('span', { text: 'Total transaksi' }),
+          h('strong', { class: 'pay-amount', text: rupiah(transaction.totalAmount) }),
+        ),
         instructions,
         deadline,
-        h('h4', { text: 'Pilih nominal pembayaran' }),
-        amountBox,
-        h('h4', { text: 'Pilih metode pembayaran' }),
-        methodSelect,
+        h('div', { class: 'payment-panel__section' },
+          h('h4', { text: '01 · Pilih nominal pembayaran' }),
+          amountBox,
+        ),
+        h('div', { class: 'payment-panel__section' },
+          h('h4', { text: '02 · Pilih metode pembayaran' }),
+          methodBox,
+        ),
         detailBox,
         h('div', { class: 'field' },
           h('label', { for: 'payment-proof-file', text: 'Unggah bukti pembayaran' }),
