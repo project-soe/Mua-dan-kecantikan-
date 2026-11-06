@@ -110,7 +110,10 @@ function paymentDetails(method) {
   return box;
 }
 
-export function renderPaymentPanel({ container, tenantId, booking, statusNode }) {
+export function renderPaymentPanel({ container, tenantId, booking, order, statusNode }) {
+  const transaction = order ?? booking;
+  const isOrder = Boolean(order);
+  const transactionId = isOrder ? order.orderId : booking.bookingId;
   const button = h('button', {
     type: 'button',
     class: 'btn',
@@ -131,7 +134,7 @@ export function renderPaymentPanel({ container, tenantId, booking, statusNode })
     try {
       const data = await call('getPaymentInstructions', {
         tenantId,
-        bookingId: booking.bookingId,
+        ...(isOrder ? { orderId: transactionId } : { bookingId: transactionId }),
       });
 
       const choices = amountChoices(data);
@@ -232,7 +235,7 @@ export function renderPaymentPanel({ container, tenantId, booking, statusNode })
 
       panel.replaceChildren(
         h('h3', { class: 'card__title', text: 'Instruksi Pembayaran' }),
-        h('p', { class: 'pay-amount', text: rupiah(booking.totalAmount) }),
+        h('p', { class: 'pay-amount', text: rupiah(transaction.totalAmount) }),
         instructions,
         deadline,
         h('h4', { text: 'Pilih nominal pembayaran' }),
@@ -283,7 +286,7 @@ export function renderPaymentPanel({ container, tenantId, booking, statusNode })
 
           const result = await call('submitPaymentProof', {
             tenantId,
-            bookingId: booking.bookingId,
+            ...(isOrder ? { orderId: transactionId } : { bookingId: transactionId }),
             paymentMethod: selectedMethod,
             proofStoragePath: uploadedPath,
             amount: selectedAmount,
@@ -295,7 +298,7 @@ export function renderPaymentPanel({ container, tenantId, booking, statusNode })
             h('h3', { class: 'card__title', text: 'Bukti pembayaran berhasil dikirim' }),
             h('p', { class: 'notice', text: 'Pembayaran Anda sedang menunggu verifikasi admin. Simpan nomor booking untuk referensi.' }),
             h('p', { class: 'meta', text: `Status pembayaran: ${result.paymentStatus}` }),
-            h('p', { class: 'meta', text: `Nomor booking: ${booking.bookingNumber}` }),
+            h('p', { class: 'meta', text: `${isOrder ? 'Nomor pesanan' : 'Nomor booking'}: ${isOrder ? order.orderNumber : booking.bookingNumber}` }),
           );
         } catch (e) {
           errorBox.replaceChildren(h('p', {
