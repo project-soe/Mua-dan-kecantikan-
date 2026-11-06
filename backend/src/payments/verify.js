@@ -5,6 +5,7 @@ import { auditEntry } from '../audit.js';
 import { auditRef } from '../common.js';
 import { bookingsCol, settingsRef, readSlots, prunedHolds } from '../bookings/common.js';
 import { paymentsCol } from './common.js';
+import { ordersCol } from '../orders/handlers.js';
 
 export function verifyPayment(db, clock) {
   return async (req, res) => {
@@ -25,6 +26,35 @@ export function verifyPayment(db, clock) {
       if (!pSnap.exists) throw new AppError('resource-not-found', 'Pembayaran tidak ditemukan');
       const p = pSnap.data();
       if (p.paymentStatus !== 'submitted') throw new AppError('failed-precondition', 'Pembayaran sudah diproses');
+      if (p.orderId) {
+        const orderRef = ordersCol(db, t).doc(p.orderId);
+        const oSnap = await tx.get(orderRef);
+        if (!oSnap.exists) throw new AppError('resource-not-found', 'Pesanan tidak ditemukan');
+        const order = oSnap.data();
+        if (order.pendingPaymentId !== paymentId || order.orderStatus !== 'payment_verification') {
+          throw new AppError('failed-precondition', 'Status pesanan tidak konsisten');
+        }
+        if (decision === 'verify' && received !== undefined && received !== p.amount) {
+          throw new AppError('payment-mismatch', 'Nominal yang diterima tidak sesuai dengan pengajuan');
+        }
+        const ts = FieldValue.serverTimestamp();
+        if (decision === 'verify') {
+          tx.update(paymentRef, { paymentStatus: 'verified', verifiedBy: uid, verifiedAt: ts });
+          tx.update(orderRef, { paymentStatus: 'paid', orderStatus: 'paid', pendingPaymentId: null,
+            paidAt: ts, paidBy: uid, updatedAt: ts });
+        } else {
+          tx.update(paymentRef, { paymentStatus: 'rejected', rejectionReason: reason, verifiedBy: uid, verifiedAt: ts });
+          tx.update(orderRef, { paymentStatus: 'unpaid', orderStatus: 'awaiting_payment',
+            pendingPaymentId: null, updatedAt: ts });
+        }
+        tx.set(auditRef(db, t), auditEntry({ actorUid: uid, tenantId: t,
+          action: decision === 'verify' ? 'verifyOrderPayment' : 'rejectOrderPayment',
+          resourceType: 'payment', resourceId: paymentId, summary: { orderId: p.orderId, amount: p.amount } }));
+        out = { paymentStatus: decision === 'verify' ? 'verified' : 'rejected',
+          updatedTransactionStatus: decision === 'verify' ? 'paid' : 'awaiting_payment',
+          orderPaymentStatus: decision === 'verify' ? 'paid' : 'unpaid' };
+        return;
+      }
       const bookingRef = bookingsCol(db, t).doc(p.bookingId);
       const bSnap = await tx.get(bookingRef);
       if (!bSnap.exists) throw new AppError('resource-not-found', 'Booking tidak ditemukan');
