@@ -159,10 +159,10 @@ describe('instruksi pembayaran', () => {
     assert.equal('enabled' in d.supportedMethods[0], false);
     assert.ok(d.paymentDeadline);
   });
-  it('orang lain 404; tanpa deposit 412; orderId 412; keduanya 400', async () => {
+  it('orang lain 404; tanpa deposit 412; order tidak ditemukan 404; keduanya 400', async () => {
     assert.equal((await call('getPaymentInstructions', { tenantId: T, bookingId: bFirst }, 'fC7')).status, 404);
     assert.equal((await call('getPaymentInstructions', { tenantId: T, bookingId: bPending }, 'fC10')).status, 412);
-    assert.equal((await call('getPaymentInstructions', { tenantId: T, orderId: 'x' }, 'fC10')).status, 412);
+    assert.equal((await call('getPaymentInstructions', { tenantId: T, orderId: 'x' }, 'fC10')).status, 404);
     assert.equal((await call('getPaymentInstructions', { tenantId: T, bookingId: bFirst, orderId: 'x' }, 'fC10')).status, 400);
     assert.equal((await call('getPaymentInstructions', { tenantId: T, bookingId: bFirst })).status, 401);
   });
@@ -202,9 +202,9 @@ describe('submitPaymentProof', () => {
       assert.equal(r.status, 400, p + ' -> ' + JSON.stringify(r.body));
     }
   });
-  it('orderId 412; bookingId+orderId 400; field asing 400; tanpa login 401', async () => {
+  it('order tidak ditemukan 404; bookingId+orderId 400; field asing 400; tanpa login 401', async () => {
     const o = { tenantId: T, orderId: 'abc', paymentMethod: 'bank_transfer', proofStoragePath: p2ok, amount: 100000 };
-    assert.equal((await call('submitPaymentProof', o, 'fC2')).status, 412);
+    assert.equal((await call('submitPaymentProof', o, 'fC2')).status, 404);
     assert.equal((await call('submitPaymentProof', payBody(b2, p2ok, { orderId: 'abc' }), 'fC2')).status, 400);
     assert.equal((await call('submitPaymentProof', payBody(b2, p2ok, { totalAmount: 1 }), 'fC2')).status, 400);
     assert.equal((await call('submitPaymentProof', payBody(b2, p2ok))).status, 401);
