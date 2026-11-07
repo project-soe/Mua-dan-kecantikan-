@@ -200,7 +200,8 @@ export async function mountCrud(root, ctx, cfg) {
           h('span', { class: 'choice__body' }, h('strong', { text: f.label }), f.hint ? h('span', { class: 'meta', text: f.hint }) : null));
       }
       if (f.type === 'image') return imageNode(f);
-      if (f.type === 'gallery') return galleryNode(f);\n      if (f.type === 'videoGallery') return videoGalleryNode(f);
+      if (f.type === 'gallery') return galleryNode(f);
+      if (f.type === 'videoGallery') return videoGalleryNode(f);
       if (f.type === 'category') return categoryNode(f);
       const id = `f-${f.name}`;
       const bind = { oninput: (e) => { draft[f.name] = e.target.value; } };
