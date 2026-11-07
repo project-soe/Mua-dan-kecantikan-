@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - feature/product-store-checkout
+      - feature/imagekit-media-storage
   pull_request:
     branches:
       - main
