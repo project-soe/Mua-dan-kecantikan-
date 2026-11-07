@@ -119,7 +119,7 @@ export function submitPaymentProof(db, clock, proofInfo) {
       const ts = FieldValue.serverTimestamp();
       const purpose = opts.stage === 'balance' ? 'balance' : (amount === b.totalAmount ? 'full' : 'deposit');
       tx.set(paymentRef, {
-        orderId: null, bookingId, customerId: uid, method, amount, purpose, proofImagePath: path,
+        orderId: null, bookingId, customerId: uid, method, amount, purpose, proofImagePath: path, ...(isImageKit ? { proofImageFileId: req.body.proofFileId, proofStorageProvider: 'imagekit' } : {}),
         paymentStatus: 'submitted', submittedAt: ts, verifiedBy: null, verifiedAt: null,
         rejectionReason: null, createdAt: ts,
       });

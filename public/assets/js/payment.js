@@ -1,8 +1,8 @@
 import { h } from './dom.js';
 import { call, ApiError } from './api.js';
 import { ensureUser } from './auth.js';
-import { auth, storage, ref, uploadBytes, getDownloadURL } from './firebase.js';
-import { validateProofFile, proofPath } from './proof.js';
+import { auth } from './firebase.js';
+import { validateProofFile } from './proof.js';
 import { rupiah } from './format.js';
 
 const METHOD_LABEL = {
@@ -14,25 +14,11 @@ const METHOD_LABEL = {
   qris: 'QRIS',
 };
 
-async function uploadProof(file, tenantId, uid) {
-  const path = proofPath(
-    tenantId,
-    uid,
-    file.type,
-    crypto.randomUUID(),
-  );
-
-  await uploadBytes(ref(storage, path), file, {
-    contentType: file.type,
-  });
-
-  return path;
-}
-
 async function uploadPrivateProof(file, tenantId) {
   const authData = await call('getPaymentProofUploadAuth', { tenantId, area: 'payment-proofs', contentType: file.type, size: file.size });
   const form = new FormData();
-  form.append('file', file); form.append('fileName', `proof-${crypto.randomUUID()}.bin`);
+  const ext = ({ 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/avif': 'avif' })[file.type];
+  form.append('file', file); form.append('fileName', `proof-${crypto.randomUUID()}.${ext}`);
   form.append('token', authData.token); form.append('expire', String(authData.expire));
   form.append('signature', authData.signature); form.append('publicKey', authData.publicKey);
   form.append('folder', authData.folder); form.append('useUniqueFileName', 'true'); form.append('isPrivateFile', 'true');
@@ -105,7 +91,7 @@ function paymentDetails(method) {
     const qr = h('p', { class: 'meta', text: 'Memuat kode QRIS…' });
     box.append(qr);
 
-    getDownloadURL(ref(storage, method.qrImage))
+    Promise.resolve(method.qrImage)
       .then((url) => {
         qr.replaceWith(h('img', {
           class: 'qr',
@@ -165,7 +151,7 @@ export function renderPaymentPanel({ container, tenantId, booking, order, status
 
       let selectedAmount = choices[0].value;
       let selectedMethod = methods[0].method;
-      let uploadedPath = null;
+      let uploadedProof = null;
       let submitted = false;
 
       const amountBox = h('div', { class: 'payment-options' });
@@ -243,8 +229,8 @@ export function renderPaymentPanel({ container, tenantId, booking, order, status
       await updateMethod();
 
       fileInput.addEventListener('change', () => {
-        // File baru memerlukan path baru karena Storage bersifat create-only.
-        uploadedPath = null;
+        // File baru membutuhkan upload dan identitas file baru.
+        uploadedProof = null;
         errorBox.replaceChildren();
       });
 
@@ -322,15 +308,13 @@ export function renderPaymentPanel({ container, tenantId, booking, order, status
 
           // Upload hanya sekali. Jika API gagal setelah upload,
           // percobaan berikutnya memakai path yang sama.
-          if (!uploadedPath) {
-            uploadedPath = await uploadProof(file, tenantId, user.uid);
-          }
+          if (!uploadedProof) uploadedProof = await uploadPrivateProof(file, tenantId);
 
           const result = await call('submitPaymentProof', {
             tenantId,
             ...(isOrder ? { orderId: transactionId } : { bookingId: transactionId }),
             paymentMethod: selectedMethod,
-            proofStoragePath: uploadedPath,
+            proofFileId: uploadedProof.fileId,
             amount: selectedAmount,
           });
 
@@ -349,7 +333,7 @@ export function renderPaymentPanel({ container, tenantId, booking, order, status
             text: errorMessage(e),
           }));
           submitButton.disabled = false;
-          submitButton.textContent = uploadedPath
+          submitButton.textContent = uploadedProof
             ? 'Coba Kirim Ulang'
             : 'Kirim Bukti Pembayaran';
         }

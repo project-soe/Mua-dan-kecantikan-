@@ -22,9 +22,9 @@ import { submitPaymentProof } from './payments/submit.js';
 import { verifyPayment } from './payments/verify.js';
 import { createOrder, cancelOrder, expireStaleOrders } from './orders/handlers.js';
 import { setOrderShippingQuote, acceptOrderShippingQuote } from './orders/shipping.js';
-import { getMediaUploadAuth } from './media/imagekit.js';
+import { getMediaUploadAuth, getPaymentProofUrl } from './media/imagekit.js';
 
-export function createApp({ db, auth, clock = Date.now, proofInfo, createMediaAuth, allowedOrigins = [] }) {
+export function createApp({ db, auth, clock = Date.now, proofInfo, createMediaAuth, createSignedUrl, allowedOrigins = [] }) {
   const app = express();
   app.disable('x-powered-by');
   app.use(cors(allowedOrigins));
@@ -39,6 +39,8 @@ export function createApp({ db, auth, clock = Date.now, proofInfo, createMediaAu
   app.post('/api/setTenantStatus', authenticate(auth), requireSuperAdmin(db), wrap(setTenantStatus(db)));
   staff('getMediaUploadAuth', [...ROLE_GROUPS.ADMIN, ...ROLE_GROUPS.CONTENT, ...ROLE_GROUPS.FINANCE],
     (d) => getMediaUploadAuth({ createAuth: createMediaAuth }));
+  customer('getPaymentProofUploadAuth', (d) => getMediaUploadAuth({ createAuth: createMediaAuth }));
+  staff('getPaymentProofUrl', ROLE_GROUPS.FINANCE, (d) => getPaymentProofUrl({ db: d, createSignedUrl }));
 
   staff('updateBrandProfile', ROLE_GROUPS.ADMIN, updateBrandProfile);
   staff('createCategory', ROLE_GROUPS.CONTENT, createCategory);

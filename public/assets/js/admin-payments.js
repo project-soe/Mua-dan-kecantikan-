@@ -56,8 +56,14 @@ export async function mountPayments(root, ctx) {
   }
 
   async function viewProof(p) {
-    try { await showImage('Bukti pembayaran', await getDownloadURL(ref(adminStorage, p.proofImagePath))); }
-    catch (e) { console.error(e); toast('Bukti tidak dapat dimuat.'); }
+    try {
+      if (p.proofStorageProvider === 'imagekit') {
+        const data = await adminCall('getPaymentProofUrl', { tenantId: ctx.tenant.id, paymentId: p.id });
+        await showImage('Bukti pembayaran', data.url);
+      } else {
+        await showImage('Bukti pembayaran', await getDownloadURL(ref(adminStorage, p.proofImagePath)));
+      }
+    } catch (e) { console.error(e); toast('Bukti tidak dapat dimuat.'); }
   }
 
   async function verifyIt(p) {
