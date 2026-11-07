@@ -80,7 +80,7 @@ export function submitPaymentProof(db, clock, proofInfo) {
 
     const bookingRef = bookingsCol(db, t).doc(bookingId);
     const paymentRef = paymentsCol(db, t).doc();
-    const proofKey = db.doc(`tenants/${t}/uniqueKeys/proof_${sha(path)}`);
+    if (!proofKey) proofKey = db.doc(`tenants/${t}/uniqueKeys/proof_${sha(path)}`);
     let result;
 
     await db.runTransaction(async (tx) => {
