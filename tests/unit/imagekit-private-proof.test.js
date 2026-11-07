@@ -11,17 +11,14 @@ test('private proof upload is scoped to customer UID and marked private', () => 
   assert.equal(auth.isPrivateFile, true);
   assert.equal(auth.maxBytes, 5 * 1024 * 1024);
 });
-
 test('private proof upload rejects staff role and oversized file', () => {
   const create = createUploadAuth(config);
   assert.throws(() => create({ tenantId: 'mua-putri', userId: 'x', area: 'payment-proofs', contentType: 'image/png', size: 1, role: 'admin' }), /pelanggan/);
   assert.throws(() => create({ tenantId: 'mua-putri', userId: 'x', area: 'payment-proofs', contentType: 'image/png', size: 6 * 1024 * 1024, role: 'customer' }), /Ukuran media/);
 });
-
-test('private proof signed URL is short-lived and signed with ImageKit HMAC-SHA1', () => {
-  const build = createSignedMediaUrl(config);
-  const url = build('/tenants/mua-putri/payment-proofs/customer_123/proof.png', 180);
+test('private proof signed URL uses short expiry and ImageKit HMAC-SHA1', () => {
+  const url = createSignedMediaUrl(config)('/tenants/mua-putri/payment-proofs/customer_123/proof.png', 180);
   const expiry = 1_800_000_180;
-  const sig = createHmac('sha1', config.privateKey).update('tenants/mua-putri/payment-proofs/customer_123/proof.png' + expiry).digest('hex');
-  assert.equal(url, `https://ik.imagekit.io/test/tenants/mua-putri/payment-proofs/customer_123/proof.png?ik-t=${expiry}&ik-s=${sig}`);
+  const signature = createHmac('sha1', config.privateKey).update('tenants/mua-putri/payment-proofs/customer_123/proof.png' + expiry).digest('hex');
+  assert.equal(url, `https://ik.imagekit.io/test/tenants/mua-putri/payment-proofs/customer_123/proof.png?ik-t=${expiry}&ik-s=${signature}`);
 });
