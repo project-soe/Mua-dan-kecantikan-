@@ -28,7 +28,8 @@ export function buildPayload(fields, draft, original, isNew) {
         if (isNew || b !== Boolean(prev)) out[f.name] = b;
         break;
       }
-      case 'gallery':\n      case 'videoGallery': {
+      case 'gallery':
+      case 'videoGallery': {
         const arr = Array.isArray(raw) ? raw : [];
         const before = Array.isArray(prev) ? prev : [];
         if (isNew ? arr.length > 0 : JSON.stringify(arr) !== JSON.stringify(before)) out[f.name] = arr;
