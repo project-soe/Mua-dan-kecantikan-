@@ -2,10 +2,13 @@
 
 ## Arsitektur
 - Firebase Spark tetap menangani Firebase Auth dan Firestore. Tidak ada Cloud Functions, Blaze, atau billing Firebase yang diperlukan oleh integrasi ini.
-- Foto publik untuk produk, portfolio, layanan, branding, testimoni, dan QRIS diunggah langsung dari browser ke ImageKit.
+- Media publik berupa foto produk, portfolio, layanan, branding, testimoni, dan QRIS diunggah langsung dari browser ke ImageKit.
+- Video portfolio diunggah ke folder tenant `videos`, dibatasi maksimal 3 video per item dan 100 MB per file. Format yang diterima: MP4, WebM, dan MOV.
 - Backend Express memverifikasi Firebase ID token + membership tenant, lalu menerbitkan kredensial upload ImageKit berumur 5 menit. Private API key hanya dibaca backend.
-- Firestore menyimpan URL HTTPS ImageKit pada field media yang sudah ada. URL lama berbentuk path Firebase Storage tetap dapat dibaca.
-- Video didukung oleh helper `uploadVideo()` dengan batas prototipe 100 MB dan folder tenant `videos`.
+- Firestore menyimpan URL HTTPS ImageKit pada field media yang sudah ada. URL lama berbentuk path Firebase Storage tetap dapat dibaca selama masa migrasi.
+- Bukti pembayaran menggunakan ImageKit Private Files. Browser hanya menerima token upload terbatas; backend memeriksa metadata file melalui API privat ImageKit, memverifikasi folder tenant + UID pelanggan, MIME, ukuran, dan status privat sebelum menyimpan referensinya ke pembayaran.
+- Admin finance melihat bukti melalui endpoint backend yang mengeluarkan signed URL berumur 180 detik. URL privat tidak disimpan di Firestore dan tidak dikirim ke halaman publik.
+- Pembayaran lama yang masih menyimpan path Firebase Storage tetap memiliki jalur pembacaan legacy di panel admin.
 
 ## Konfigurasi
 Isi tiga environment variable pada proses backend:
@@ -16,12 +19,17 @@ Isi tiga environment variable pada proses backend:
 Backend harus dijalankan ulang setelah environment variable diisi. Tanpa konfigurasi lengkap, endpoint upload menolak permintaan dengan jelas. Upload menggunakan endpoint HTTPS resmi ImageKit.
 
 ## Batasan keamanan
-- Upload-auth memerlukan sesi Firebase terautentikasi dan membership tenant aktif.
-- QRIS hanya dapat meminta otorisasi upload untuk owner/finance_manager; area media lain dibatasi owner/admin/content_manager.
-- Server membatasi MIME, ukuran, area, dan folder tenant yang diberikan kepada UI. Validasi backend atas referensi media hanya menerima origin endpoint ImageKit yang dikonfigurasi dan path folder tenant yang tepat.
-- URL produk/portfolio/layanan/branding/testimoni/QRIS bersifat publik karena memang ditampilkan kepada pengunjung. Jangan unggah dokumen identitas, data pelanggan, atau bukti pembayaran melalui helper publik ini.
-- Bukti pembayaran tetap memakai Firebase Storage privat dan aturan akses yang sudah ada. Ini disengaja: bukti transaksi tidak boleh disimpan sebagai file publik. Untuk memindahkannya ke ImageKit private files diperlukan alur private delivery bertanda tangan dan migrasi kontrak payment yang terpisah.
-- Video upload helper tersedia, tetapi belum ada field video di formulir katalog/portfolio atau komponen pemutar di halaman publik. Jangan menganggap video sudah tampil di situs sampai UI video dirangkai pada tahap berikutnya.
+- Upload-auth memerlukan sesi Firebase terautentikasi dan tenant aktif.
+- Upload QRIS hanya dapat diminta owner/finance_manager; media publik lain dibatasi owner/admin/content_manager.
+- Upload bukti pembayaran hanya tersedia untuk pelanggan terautentikasi dan disimpan di folder yang memuat tenant ID serta UID pelanggan.
+- Endpoint penyerahan bukti memeriksa fileId melalui ImageKit API; tidak mempercayai filePath atau URL dari browser.
+- Endpoint melihat bukti hanya tersedia untuk peran finance yang berwenang, memeriksa kepemilikan folder, dan mengirim signed URL singkat dengan `Cache-Control: no-store`.
+- Server membatasi MIME, ukuran, area, dan folder tenant. Validasi referensi media publik hanya menerima origin ImageKit yang dikonfigurasi dan path folder tenant yang tepat.
+- QRIS, foto produk, portfolio, layanan, branding, testimoni, dan video bersifat publik karena memang ditampilkan kepada pengunjung. Jangan unggah dokumen identitas atau data pelanggan melalui helper publik.
+- Bukti transaksi tidak boleh diunggah melalui helper publik atau URL biasa. File bukti harus tetap privat.
 
-## Kuota
-Batas upload aplikasi adalah 25 MB untuk gambar dan 100 MB untuk video. Batas ini bukan jaminan kuota akun ImageKit; batas paket/kuota akun tetap berlaku dan dapat berubah. Pantau pemakaian di dashboard ImageKit.
+## Kuota aplikasi
+- Gambar publik: maksimal 25 MB sebelum optimasi browser.
+- Video: maksimal 100 MB per file.
+- Bukti pembayaran: maksimal 5 MB.
+Batas aplikasi bukan jaminan kuota akun ImageKit; batas paket/kuota akun tetap berlaku dan dapat berubah. Pantau pemakaian di dashboard ImageKit.
