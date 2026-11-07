@@ -29,6 +29,18 @@ async function uploadProof(file, tenantId, uid) {
   return path;
 }
 
+async function uploadPrivateProof(file, tenantId) {
+  const authData = await call('getPaymentProofUploadAuth', { tenantId, area: 'payment-proofs', contentType: file.type, size: file.size });
+  const form = new FormData();
+  form.append('file', file); form.append('fileName', `proof-${crypto.randomUUID()}.bin`);
+  form.append('token', authData.token); form.append('expire', String(authData.expire));
+  form.append('signature', authData.signature); form.append('publicKey', authData.publicKey);
+  form.append('folder', authData.folder); form.append('useUniqueFileName', 'true'); form.append('isPrivateFile', 'true');
+  const response = await fetch('https://upload.imagekit.io/api/v1/files/upload', { method: 'POST', body: form });
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok || !result.fileId || !result.filePath) throw new Error(result.message || 'Upload bukti ke ImageKit gagal.');
+  return { fileId: result.fileId, filePath: result.filePath };
+}
 const errorMessage = (e) =>
   e instanceof ApiError ? e.message : 'Terjadi kesalahan. Silakan coba lagi.';
 

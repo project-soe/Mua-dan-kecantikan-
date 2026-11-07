@@ -1,7 +1,7 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import { PAYMENT_METHODS } from '../../../shared/constants/index.js';
 import { AppError } from '../errors.js';
-import { rejectUnknown, int, idOf, oneOf, storagePath } from '../validate.js';
+import { rejectUnknown, int, idOf, oneOf } from '../validate.js';
 import { auditEntry } from '../audit.js';
 import { auditRef } from '../common.js';
 import { bookingsCol, settingsRef, readSlots, activeCount, prunedHolds } from '../bookings/common.js';
@@ -12,25 +12,37 @@ export function submitPaymentProof(db, clock, proofInfo) {
   return async (req, res) => {
     const t = req.tenant.id;
     const uid = req.user.uid;
-    rejectUnknown(req.body, ['tenantId', 'bookingId', 'orderId', 'paymentMethod', 'proofStoragePath', 'amount']);
+    rejectUnknown(req.body, ['tenantId', 'bookingId', 'orderId', 'paymentMethod', 'proofFileId', 'proofStoragePath', 'amount']);
     if (req.body.bookingId !== undefined && req.body.orderId !== undefined) throw bad('Isi bookingId atau orderId, bukan keduanya');
     const orderId = req.body.orderId !== undefined ? idOf(req.body.orderId, 'orderId') : null;
     const bookingId = orderId ? null : idOf(req.body.bookingId, 'bookingId');
     const method = oneOf(req.body.paymentMethod, PAYMENT_METHODS, 'paymentMethod');
     const amount = int(req.body.amount, 'amount', { min: 1 });
-    const path = storagePath(req.body.proofStoragePath, 'proofStoragePath', `tenants/${t}/payment-proofs/${uid}/`);
-
-    // Pemeriksaan file di luar transaksi (file bersifat create-only, tidak bisa ditimpa).
     if (typeof proofInfo !== 'function') throw new AppError('internal', 'Penyimpanan bukti belum dikonfigurasi');
-    const info = await proofInfo(path);
-    if (!info) throw bad('File bukti pembayaran tidak ditemukan');
-    if (!/^image\/(jpeg|png|webp|avif)$/.test(info.contentType ?? '')) throw bad('Bukti pembayaran harus berupa gambar');
-    if (!(info.size > 0 && info.size <= MAX_PROOF_BYTES)) throw bad('Ukuran bukti pembayaran tidak valid');
+    const isImageKit = typeof req.body.proofFileId === 'string';
+    let info, path, proofKey;
+    if (isImageKit) {
+      info = await proofInfo({ fileId: req.body.proofFileId, tenantId: t, userId: uid });
+      if (!info) throw bad('File bukti pembayaran tidak ditemukan');
+      if (!/^image\/(jpeg|png|webp|avif)$/.test(info.contentType ?? '')) throw bad('Bukti pembayaran harus berupa gambar');
+      if (!(info.size > 0 && info.size <= MAX_PROOF_BYTES)) throw bad('Ukuran bukti pembayaran tidak valid');
+      path = info.filePath;
+      proofKey = db.doc(`tenants/${t}/uniqueKeys/proof_${sha(req.body.proofFileId)}`);
+    } else {
+      // Kompatibilitas untuk test/emulator dan bukti lama Firebase Storage.
+      path = req.body.proofStoragePath;
+      if (typeof path !== 'string' || !path.startsWith(`tenants/${t}/payment-proofs/${uid}/`)) throw bad('Path bukti pembayaran tidak valid');
+      info = await proofInfo(path);
+      if (!info) throw bad('File bukti pembayaran tidak ditemukan');
+      if (!/^image\/(jpeg|png|webp|avif)$/.test(info.contentType ?? '')) throw bad('Bukti pembayaran harus berupa gambar');
+      if (!(info.size > 0 && info.size <= MAX_PROOF_BYTES)) throw bad('Ukuran bukti pembayaran tidak valid');
+      proofKey = db.doc(`tenants/${t}/uniqueKeys/proof_${sha(path)}`);
+    }
 
     if (orderId) {
       const orderRef = ordersCol(db, t).doc(orderId);
       const paymentRef = paymentsCol(db, t).doc();
-      const proofKey = db.doc(`tenants/${t}/uniqueKeys/proof_${sha(path)}`);
+      
       let orderResult;
       await db.runTransaction(async (tx) => {
         const orderSnap = await tx.get(orderRef);
@@ -54,7 +66,7 @@ export function submitPaymentProof(db, clock, proofInfo) {
         if (!pubSnap.exists || !pubSnap.data().methods?.some((m) => m.method === method && m.enabled)) throw bad('Metode pembayaran tidak tersedia');
         const ts = FieldValue.serverTimestamp();
         tx.set(paymentRef, { orderId, bookingId: null, customerId: uid, method, amount, purpose: 'order',
-          proofImagePath: path, paymentStatus: 'submitted', submittedAt: ts, verifiedBy: null, verifiedAt: null,
+          proofImagePath: path, ...(isImageKit ? { proofImageFileId: req.body.proofFileId, proofStorageProvider: 'imagekit' } : {}), paymentStatus: 'submitted', submittedAt: ts, verifiedBy: null, verifiedAt: null,
           rejectionReason: null, createdAt: ts });
         tx.set(proofKey, { paymentId: paymentRef.id, orderId, uid, createdAt: ts });
         tx.update(orderRef, { pendingPaymentId: paymentRef.id, orderStatus: 'payment_verification', updatedAt: ts });
