@@ -3,7 +3,7 @@ import { adminCall } from './admin-api.js';
 import { h } from './dom.js';
 import { imageUrl } from './media.js';
 import { askDialog, toast, apiErrText } from './admin-ui.js';
-import { uploadImage } from './admin-images.js';
+import { uploadImage, uploadVideo } from './admin-images.js';
 import { buildPayload } from './admin-form.js';
 
 const ACCEPT = 'image/jpeg,image/png,image/webp';
@@ -82,7 +82,7 @@ export async function mountCrud(root, ctx, cfg) {
     const draft = {};
     for (const f of cfg.fields) {
       const v = item?.[f.name];
-      if (f.type === 'gallery') draft[f.name] = Array.isArray(v) ? [...v] : [];
+      if (f.type === 'gallery' || f.type === 'videoGallery') draft[f.name] = Array.isArray(v) ? [...v] : [];
       else if (f.type === 'checkbox') draft[f.name] = isNew ? (f.default ?? false) : Boolean(v);
       else if (f.type === 'number') draft[f.name] = v === undefined || v === null ? (isNew ? (f.default ?? '') : '') : String(v);
       else draft[f.name] = v ?? (isNew ? (f.default ?? '') : '');
@@ -142,6 +142,34 @@ export async function mountCrud(root, ctx, cfg) {
       return h('div', { class: 'field' }, h('label', { for: input.id, text: f.label }), input, grid, status);
     }
 
+    function videoGalleryNode(f) {
+      const grid = h('div', { class: 'video-gallery' });
+      const status = h('p', { class: 'meta', 'aria-live': 'polite' });
+      const draw = () => grid.replaceChildren(...draft[f.name].map((path, i) => h('div', { class: 'video-gallery__item' },
+        h('video', { src: imageUrl(path), controls: true, playsinline: true, preload: 'metadata' }),
+        h('button', { class: 'btn btn--ghost btn--small', type: 'button', text: 'Hapus video', onclick: () => { draft[f.name].splice(i, 1); draw(); } }))));
+      const input = h('input', { class: 'input', id: `f-${f.name}`, type: 'file', multiple: true,
+        accept: 'video/mp4,video/webm,video/quicktime', onchange: async (e) => {
+          const files = [...e.target.files];
+          for (const file of files) {
+            if (draft[f.name].length >= 3) { status.textContent = 'Maksimal 3 video portfolio.'; break; }
+            uploading += 1;
+            status.textContent = `Mengunggah ${file.name}…`;
+            try {
+              const result = await uploadVideo(file, { tenantId: t });
+              draft[f.name].push(result.path);
+              draw();
+              status.textContent = 'Video terunggah. Klik Simpan untuk menerapkan.';
+            } catch (e2) { console.error(e2); status.textContent = uploadErr(e2); }
+            finally { uploading -= 1; }
+          }
+          e.target.value = '';
+        } });
+      draw();
+      return h('div', { class: 'field' }, h('label', { for: input.id, text: f.label }), input,
+        f.hint ? h('p', { class: 'meta', text: f.hint }) : null, grid, status);
+    }
+
     function categoryNode(f) {
       const wrap = h('div', { class: 'field' });
       const build = () => {
@@ -172,7 +200,7 @@ export async function mountCrud(root, ctx, cfg) {
           h('span', { class: 'choice__body' }, h('strong', { text: f.label }), f.hint ? h('span', { class: 'meta', text: f.hint }) : null));
       }
       if (f.type === 'image') return imageNode(f);
-      if (f.type === 'gallery') return galleryNode(f);
+      if (f.type === 'gallery') return galleryNode(f);\n      if (f.type === 'videoGallery') return videoGalleryNode(f);
       if (f.type === 'category') return categoryNode(f);
       const id = `f-${f.name}`;
       const bind = { oninput: (e) => { draft[f.name] = e.target.value; } };
@@ -196,7 +224,7 @@ export async function mountCrud(root, ctx, cfg) {
 
     async function save(ev) {
       ev.preventDefault();
-      if (uploading > 0) return showError('Tunggu sampai unggahan gambar selesai.');
+      if (uploading > 0) return showError('Tunggu sampai semua unggahan media selesai.');
       const { out, errors } = buildPayload(cfg.fields, draft, item, isNew);
       if (errors.length) return showError(errors[0]);
       if (!isNew && !Object.keys(out).length) return showError('Tidak ada perubahan untuk disimpan.');

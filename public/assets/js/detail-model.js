@@ -26,7 +26,7 @@ export function slideList(kind, item) {
   if (kind === 'portfolio' && item.beforeImage && item.afterImage) {
     out.push({ type: 'compare', before: item.beforeImage, after: item.afterImage });
   }
-  for (const p of Array.isArray(item.gallery) ? item.gallery : []) add(p);
+  for (const p of Array.isArray(item.gallery) ? item.gallery : []) add(p);\n  if (kind === 'portfolio') {\n    for (const path of Array.isArray(item.videos) ? item.videos : []) {\n      if (typeof path === 'string' && path) out.push({ type: 'video', path });\n    }\n  }
   return out;
 }
 

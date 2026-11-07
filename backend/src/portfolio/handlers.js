@@ -8,7 +8,7 @@ import { auditRef, uniqueRef, slugKey, pickSlug, assertExists } from '../common.
 
 const bad = (m) => new AppError('invalid-argument', m);
 const KEYS = ['title', 'description', 'modelName', 'artistName', 'categoryId', 'coverImage',
-  'thumbnailImage', 'beforeImage', 'afterImage', 'gallery', 'featured', 'consentConfirmed',
+  'thumbnailImage', 'beforeImage', 'afterImage', 'gallery', 'videos', 'featured', 'consentConfirmed',
   'sortOrder', 'seoTitle', 'seoDescription', 'shareImage'];
 const itemRef = (db, t, id) => db.doc(`tenants/${t}/portfolio/${id}`);
 
@@ -26,6 +26,7 @@ function parse(body, t, requireAll) {
     put(k, storagePath(body[k], k, prefix, { optional: true }));
   }
   put('gallery', storagePaths(body.gallery, 'gallery', prefix, { max: 12, optional: true }));
+  put('videos', storagePaths(body.videos, 'videos', `tenants/${t}/videos/`, { max: 3, optional: true }));
   put('featured', optBool(body.featured, 'featured'));
   put('consentConfirmed', optBool(body.consentConfirmed, 'consentConfirmed'));
   put('sortOrder', int(body.sortOrder, 'sortOrder', { max: 100000, optional: true }));
@@ -49,6 +50,7 @@ export function createPortfolio(db) {
       tx.set(ref, {
         ...f, slug,
         gallery: f.gallery ?? [],
+        videos: f.videos ?? [],
         featured: f.featured ?? false,
         consentConfirmed: f.consentConfirmed ?? false,
         sortOrder: f.sortOrder ?? 0,

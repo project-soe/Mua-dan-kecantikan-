@@ -27,7 +27,7 @@ function compareNode(before, after, title) {
 
 function slideNode(s, title, i) {
   if (s.type === 'compare') return compareNode(s.before, s.after, title);
-  if (s.type === 'none') return h('div', { class: 'lb__placeholder', 'aria-hidden': 'true', text: [...title][0]?.toUpperCase() ?? '' });
+  if (s.type === 'video') return h('video', { class: 'lb__video', src: imageUrl(s.path), controls: true, playsinline: true, preload: 'metadata', 'aria-label': `${title} — video ${i + 1}` });\n  if (s.type === 'none') return h('div', { class: 'lb__placeholder', 'aria-hidden': 'true', text: [...title][0]?.toUpperCase() ?? '' });
   return h('img', { src: imageUrl(s.path), alt: `${title} — foto ${i + 1}`, decoding: 'async' });
 }
 

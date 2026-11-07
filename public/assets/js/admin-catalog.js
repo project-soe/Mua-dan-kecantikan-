@@ -89,6 +89,7 @@ const CONFIGS = {
       { name: 'beforeImage', label: 'Foto sebelum (opsional)', type: 'image', hint: 'Foto sebelum dan sesudah harus diisi berpasangan.' },
       { name: 'afterImage', label: 'Foto sesudah (opsional)', type: 'image' },
       { name: 'gallery', label: 'Foto tambahan (maks. 12)', type: 'gallery' },
+      { name: 'videos', label: 'Video portfolio (maks. 3, 100 MB/video)', type: 'videoGallery' },
       { name: 'featured', label: 'Tampilkan sebagai unggulan', type: 'checkbox' },
       { name: 'consentConfirmed', label: 'Izin model sudah dikonfirmasi', type: 'checkbox',
         hint: 'Centang hanya jika model sudah memberi izin tertulis foto ini ditampilkan. Wajib untuk menerbitkan.' },

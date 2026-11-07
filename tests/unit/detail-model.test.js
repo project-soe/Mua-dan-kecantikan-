@@ -24,7 +24,7 @@ test('slide: utama, perbandingan, galeri; tanpa duplikat dan nilai kosong', () =
   assert.deepEqual(s.filter((x) => x.type === 'image').map((x) => x.path), ['c', 'g1', 'g2']);
   assert.deepEqual(slideList('portfolio', { coverImage: 'c', beforeImage: 'b' }).map((x) => x.type), ['image']);
   assert.deepEqual(slideList('product', { coverImage: 'c', beforeImage: 'b', afterImage: 'a' }).map((x) => x.type), ['image']);
-  assert.deepEqual(slideList('product', {}), []);
+  assert.deepEqual(slideList('product', {}), []);\n  assert.deepEqual(slideList('portfolio', { coverImage: 'c', videos: ['v1', 'v2'] }), [\n    { type: 'image', path: 'c' }, { type: 'video', path: 'v1' }, { type: 'video', path: 'v2' },\n  ]);\n  assert.deepEqual(slideList('product', { videos: ['v1'] }), []);
   assert.deepEqual(slideList('product', { gallery: 'bukan-array' }), []);
 });
 
