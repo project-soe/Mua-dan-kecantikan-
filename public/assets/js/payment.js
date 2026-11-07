@@ -1,7 +1,7 @@
 import { h } from './dom.js';
 import { call, ApiError } from './api.js';
 import { ensureUser } from './auth.js';
-import { auth } from './firebase.js';
+import { auth, storage, ref, getDownloadURL } from './firebase.js';
 import { validateProofFile } from './proof.js';
 import { rupiah } from './format.js';
 
@@ -91,8 +91,10 @@ function paymentDetails(method) {
     const qr = h('p', { class: 'meta', text: 'Memuat kode QRIS…' });
     box.append(qr);
 
-    Promise.resolve(method.qrImage)
-      .then((url) => {
+    const qrUrl = /^https:\/\//i.test(method.qrImage)
+      ? Promise.resolve(method.qrImage)
+      : getDownloadURL(ref(storage, method.qrImage));
+    qrUrl.then((url) => {
         qr.replaceWith(h('img', {
           class: 'qr',
           src: url,
