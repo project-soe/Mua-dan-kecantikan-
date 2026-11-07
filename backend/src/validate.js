@@ -53,6 +53,7 @@ export function storagePath(v, name, prefix, { optional = false } = {}) {
       const expectedPath = `/${prefix}`;
       if (url.protocol === 'https:' && url.origin === endpoint.origin
         && url.pathname.startsWith(expectedPath) && !url.pathname.includes('..')
+        && !url.pathname.includes('%') && !url.pathname.includes('\\\\')
         && !url.search && !url.hash) return s;
     } catch { /* ditolak di bawah */ }
   }
