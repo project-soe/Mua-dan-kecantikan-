@@ -22,23 +22,23 @@ import { submitPaymentProof } from './payments/submit.js';
 import { verifyPayment } from './payments/verify.js';
 import { createOrder, cancelOrder, expireStaleOrders } from './orders/handlers.js';
 import { setOrderShippingQuote, acceptOrderShippingQuote } from './orders/shipping.js';
+import { getMediaUploadAuth } from './media/imagekit.js';
 
-export function createApp({ db, auth, clock = Date.now, proofInfo, allowedOrigins = [] }) {
+export function createApp({ db, auth, clock = Date.now, proofInfo, createMediaAuth, allowedOrigins = [] }) {
   const app = express();
   app.disable('x-powered-by');
   app.use(cors(allowedOrigins));
   app.use(express.json({ limit: '100kb' }));
-
   const staff = (name, roles, handler) =>
     app.post(`/api/${name}`, authenticate(auth), loadTenant(db), requireMembership(db, roles), wrap(handler(db)));
-  // Pelanggan: cukup login Firebase (anonymous boleh); tenant harus aktif.
   const customer = (name, handler) =>
     app.post(`/api/${name}`, authenticate(auth), loadTenant(db), requireActiveTenant(), wrap(handler(db, clock)));
-
   app.get('/api/health', (req, res) => res.json({ ok: true }));
   app.post('/api/getMyAccess', authenticate(auth), loadTenant(db),
     requireMembership(db, Object.values(TENANT_ROLES), { anyTenantStatus: true }), getMyAccess);
   app.post('/api/setTenantStatus', authenticate(auth), requireSuperAdmin(db), wrap(setTenantStatus(db)));
+  staff('getMediaUploadAuth', [...ROLE_GROUPS.ADMIN, ...ROLE_GROUPS.CONTENT, ...ROLE_GROUPS.FINANCE],
+    (d) => getMediaUploadAuth({ createAuth: createMediaAuth }));
 
   staff('updateBrandProfile', ROLE_GROUPS.ADMIN, updateBrandProfile);
   staff('createCategory', ROLE_GROUPS.CONTENT, createCategory);
@@ -58,7 +58,6 @@ export function createApp({ db, auth, clock = Date.now, proofInfo, allowedOrigin
   staff('updateReview', ROLE_GROUPS.CONTENT, updateReview);
   staff('publishReview', ROLE_GROUPS.CONTENT, publishReview);
   staff('deleteReview', ROLE_GROUPS.ADMIN, deleteReview);
-
   staff('updateBusinessHours', ROLE_GROUPS.ADMIN, updateBusinessHours);
   staff('updateStoreHours', ROLE_GROUPS.ADMIN, updateStoreHours);
   staff('confirmBooking', ROLE_GROUPS.ADMIN, (d) => confirmBooking(d, clock));
@@ -67,17 +66,14 @@ export function createApp({ db, auth, clock = Date.now, proofInfo, allowedOrigin
   staff('verifyPayment', ROLE_GROUPS.FINANCE, (d) => verifyPayment(d, clock));
   staff('expireStaleOrders', ROLE_GROUPS.ADMIN, (d) => expireStaleOrders(d, clock));
   staff('setOrderShippingQuote', ROLE_GROUPS.ADMIN, (d) => setOrderShippingQuote(d, clock));
-
   customer('checkBookingAvailability', checkBookingAvailability);
   customer('createBooking', createBooking);
   customer('getPaymentInstructions', getPaymentInstructions);
   customer('submitPaymentProof', (d, c) => submitPaymentProof(d, c, proofInfo));
   customer('createOrder', createOrder);
   customer('acceptOrderShippingQuote', (d, c) => acceptOrderShippingQuote(d, c));
-  // Pembatalan: pemilik booking atau staf; boleh walau tenant ditangguhkan.
   app.post('/api/cancelBooking', authenticate(auth), loadTenant(db), wrap(cancelBooking(db, clock)));
   app.post('/api/cancelOrder', authenticate(auth), loadTenant(db), wrap(cancelOrder(db)));
-
   app.use(notFound);
   app.use(errorHandler);
   return app;
