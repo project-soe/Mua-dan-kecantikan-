@@ -14,7 +14,7 @@ const createMediaAuth = createUploadAuth({
 const imageKitProofInfo = createImageKitProofInfo({ privateKey: config.imageKitPrivateKey });
 const proofInfo = (input) => (typeof input === 'string' ? firebaseProofInfo(input) : imageKitProofInfo(input));
 const createSignedUrl = createSignedMediaUrl({ privateKey: config.imageKitPrivateKey, urlEndpoint: config.imageKitUrlEndpoint });
-const server = createApp({ db, auth, proofInfo, createMediaAuth, createSignedUrl, allowedOrigins: config.allowedOrigins }).listen(config.port, () => {
+const server = createApp({ db, auth, proofInfo, createMediaAuth, createSignedUrl, allowedOrigins: config.allowedOrigins }).listen(config.port, '0.0.0.0', () => {
   console.log(`Backend berjalan di port ${config.port}`);
   console.log('Asal yang diizinkan (CORS):', config.allowedOrigins.join(', ') || '(tidak ada)');
 });
