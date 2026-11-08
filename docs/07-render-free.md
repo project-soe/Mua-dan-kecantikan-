@@ -30,7 +30,7 @@ Render sendiri menyatakan Free services ditujukan untuk eksperimen/hobi, bukan a
 3. Hubungkan GitHub, pilih repository `project-soe/Mua-dan-kecantikan-` dan branch `deploy/render-free`.
 4. Render membaca `render.yaml`. Pastikan service bernama `mua-putri-api` dan compute plan tetap **Free**.
 5. Saat diminta, isi environment variables berikut:
-   - `ALLOWED_ORIGINS`: daftar origin frontend yang benar-benar dipakai, dipisahkan koma, tanpa slash di akhir. Contoh format: `https://DOMAIN-FIREBASE.web.app,https://DOMAIN-KUSTOM`. Jangan masukkan URL API Render di sini.
+   - `ALLOWED_ORIGINS`: sudah ditetapkan pada Blueprint menjadi `https://mua-putri.id,https://www.mua-putri.id`. Jangan masukkan URL API Render di sini.
    - `IMAGEKIT_PUBLIC_KEY`: Public Key dari ImageKit.
    - `IMAGEKIT_PRIVATE_KEY`: Private Key dari ImageKit. Rahasia; masukkan hanya di dashboard Render.
    - `IMAGEKIT_URL_ENDPOINT`: URL endpoint ImageKit, misalnya `https://ik.imagekit.io/ID_MEDIA_LIBRARY`.
@@ -58,7 +58,9 @@ Render sendiri menyatakan Free services ditujukan untuk eksperimen/hobi, bukan a
 
 ## Setelah backend aktif
 
-URL backend belum dimasukkan ke `public/assets/js/firebase-config.js`. Jangan mengubah `apiBase` sampai URL Render aktual tersedia dan health check berhasil. Perubahan frontend dan konfigurasi domain harus dilakukan terpisah setelah URL diverifikasi.
+Frontend sudah diarahkan ke `https://mua-putri-api.onrender.com` melalui `public/assets/js/firebase-config.js`. Origin CORS yang diizinkan adalah `https://mua-putri.id` dan `https://www.mua-putri.id`. Alias proyek Firebase default berada di `.firebaserc` dengan project ID `kolom-komentar-bfa86`.
+
+Untuk menerbitkan frontend, dari direktori repo jalankan `firebase deploy --only hosting --project kolom-komentar-bfa86` setelah memastikan Firebase CLI login ke akun yang memiliki akses. Perintah ini menerbitkan isi folder `public` ke Firebase Hosting; jalankan hanya setelah memeriksa perubahan yang akan diterbitkan. Domain kustom harus sudah berstatus Connected di Firebase Hosting. Jangan mengubah DNS berdasarkan tebakan; gunakan record yang ditampilkan wizard Firebase.
 
 ## Batasan operasional
 
