@@ -19,7 +19,7 @@ services:
       - key: GOOGLE_APPLICATION_CREDENTIALS
         value: /etc/secrets/firebase-admin.json
       - key: ALLOWED_ORIGINS
-        sync: false
+        value: https://mua-putri.id,https://www.mua-putri.id
       - key: IMAGEKIT_PUBLIC_KEY
         sync: false
       - key: IMAGEKIT_PRIVATE_KEY
