@@ -1,11 +1,15 @@
-const projectId = process.env.GCLOUD_PROJECT || process.env.FIREBASE_PROJECT_ID || 'demo-mua-putri';
+const projectId = process.env.FIREBASE_PROJECT_ID || process.env.GCLOUD_PROJECT || 'mua-and-beauty';
 const fromEnv = (process.env.ALLOWED_ORIGINS || '').split(',').map((s) => s.trim()).filter(Boolean);
-const devOrigins = process.env.FIRESTORE_EMULATOR_HOST ? ['http://localhost:5000', 'http://127.0.0.1:5000'] : [];
+const devOrigins = process.env.FIRESTORE_EMULATOR_HOST
+  ? ['http://localhost:5000', 'http://127.0.0.1:5000']
+  : [];
 
 export const config = {
   projectId,
   port: Number(process.env.PORT || 3000),
-  storageBucket: process.env.STORAGE_BUCKET || `${projectId}.appspot.com`,
+  storageBucket: process.env.STORAGE_BUCKET || (projectId === 'mua-and-beauty'
+    ? 'mua-and-beauty.firebasestorage.app'
+    : `${projectId}.appspot.com`),
   recentAuthSeconds: Number(process.env.RECENT_AUTH_SECONDS || 900),
   imageKitPublicKey: process.env.IMAGEKIT_PUBLIC_KEY || '',
   imageKitPrivateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
