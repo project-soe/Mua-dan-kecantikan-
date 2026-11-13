@@ -1,7 +1,7 @@
 import { FieldValue } from 'firebase-admin/firestore';
 import { PAYMENT_METHODS } from '../../../shared/constants/index.js';
 import { AppError } from '../errors.js';
-import { rejectUnknown, str, oneOf, bool, storagePath } from '../validate.js';
+import { rejectUnknown, str, oneOf, bool, imageKitUrl } from '../validate.js';
 import { auditEntry } from '../audit.js';
 import { auditRef } from '../common.js';
 import { config } from '../config.js';
@@ -23,7 +23,7 @@ function parseMethod(m, t, i) {
   const num = str(m.accountNumber, `${p}.accountNumber`, { max: 30, optional: !(enabled && method !== 'qris') });
   if (num !== undefined && !NUM_RE.test(num)) throw bad(`${p}.accountNumber hanya boleh angka, spasi, dan -`);
   put('accountNumber', num);
-  put('qrImage', storagePath(m.qrImage, `${p}.qrImage`, `tenants/${t}/payment-methods/`,
+  put('qrImage', imageKitUrl(m.qrImage, `${p}.qrImage`, `/tenants/${t}/payment-methods/`,
     { optional: !(enabled && method === 'qris') }));
   return out;
 }

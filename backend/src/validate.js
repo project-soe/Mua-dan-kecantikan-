@@ -59,6 +59,20 @@ export function storagePath(v, name, prefix, { optional = false } = {}) {
   }
   throw bad(`${name} harus berada di ${prefix} atau URL ImageKit tenant yang sesuai`);
 }
+export function imageKitUrl(v, name, prefix, { optional = false } = {}) {
+  const s = str(v, name, { min: 1, max: 1000, optional });
+  if (s === undefined) return undefined;
+  if (!config.imageKitUrlEndpoint) throw bad(`${name} tidak dapat diverifikasi karena endpoint ImageKit belum dikonfigurasi`);
+  try {
+    const endpoint = new URL(config.imageKitUrlEndpoint);
+    const url = new URL(s);
+    const base = endpoint.pathname.replace(/\/$/, '');
+    if (url.protocol === 'https:' && url.origin === endpoint.origin
+      && url.pathname.startsWith(`${base}${prefix}`) && !url.pathname.includes('..')
+      && !url.pathname.includes('%') && !url.username && !url.password && !url.search && !url.hash) return s;
+  } catch { /* ditolak */ }
+  throw bad(`${name} harus berupa URL ImageKit di folder tenant yang sesuai`);
+}
 export function storagePaths(v, name, prefix, { max = 12, optional = false } = {}) {
   if (missing(v)) { if (optional) return undefined; throw bad(`${name} wajib diisi`); }
   if (!Array.isArray(v) || v.length > max) throw bad(`${name} harus berupa daftar maksimal ${max} item`);

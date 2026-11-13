@@ -7,9 +7,6 @@ const devOrigins = process.env.FIRESTORE_EMULATOR_HOST
 export const config = {
   projectId,
   port: Number(process.env.PORT || 3000),
-  storageBucket: process.env.STORAGE_BUCKET || (projectId === 'mua-and-beauty'
-    ? 'mua-and-beauty.firebasestorage.app'
-    : `${projectId}.appspot.com`),
   recentAuthSeconds: Number(process.env.RECENT_AUTH_SECONDS || 900),
   imageKitPublicKey: process.env.IMAGEKIT_PUBLIC_KEY || '',
   imageKitPrivateKey: process.env.IMAGEKIT_PRIVATE_KEY || '',
