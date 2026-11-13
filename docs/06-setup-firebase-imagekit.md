@@ -7,8 +7,8 @@ Dokumen ini adalah checklist setup layanan produksi. Jangan deploy ke produksi s
 ### Firebase
 - Project ID: `mua-and-beauty`
 - Auth domain: `mua-and-beauty.firebaseapp.com`
-- Storage bucket: `mua-and-beauty.firebasestorage.app`
-- Produk: Firebase Authentication, Cloud Firestore, Firebase Hosting, Firebase Storage (hanya kompatibilitas media lama bila masih diperlukan).
+- Produk: Firebase Authentication, Cloud Firestore, dan Firebase Hosting.
+- Firebase Storage tidak digunakan untuk media produksi; emulator dan Rules tetap dipertahankan hanya untuk tes keamanan.
 
 ### ImageKit
 - File publik: foto produk, layanan, portfolio, branding, testimoni, QRIS, video portfolio.
@@ -26,7 +26,6 @@ Dokumen ini adalah checklist setup layanan produksi. Jangan deploy ke produksi s
 6. Buka Authentication → Settings → Authorized domains. Tambahkan domain produksi yang akan digunakan, misalnya `mua-putri.id` dan `www.mua-putri.id`, setelah domain benar-benar dimiliki dan diarahkan ke Hosting.
 7. Buka Firestore Database → Create database. Pilih lokasi yang sesuai dengan kebutuhan pengguna dan latensi. Lokasi database tidak dapat diganti setelah dibuat; tentukan sebelum membuat database.
 8. Pilih production mode. Rules dari repository akan dideploy setelah tes emulator lulus.
-9. Buka Storage. Aktifkan bucket hanya jika kompatibilitas media Firebase Storage lama atau kebutuhan fallback masih digunakan. Media baru diarahkan ke ImageKit.
 10. Buka Project settings → General → Your apps. Pastikan aplikasi Web memakai konfigurasi proyek target yang sudah ada di `public/assets/js/firebase-config.js`.
 11. Aktifkan Firebase Hosting dan hubungkan domain setelah pengujian staging.
 
@@ -39,7 +38,6 @@ Dokumen ini adalah checklist setup layanan produksi. Jangan deploy ke produksi s
 3. Simpan JSON langsung ke secret manager atau server backend. Jangan unggah ke GitHub, jangan taruh di folder `public/`, dan jangan kirim file atau isinya melalui chat.
 4. Atur environment backend:
    - `FIREBASE_PROJECT_ID=mua-and-beauty`
-   - `STORAGE_BUCKET=mua-and-beauty.firebasestorage.app`
    - `GOOGLE_APPLICATION_CREDENTIALS=/path/yang/aman/service-account.json`
 5. Gunakan service account dengan akses minimum yang dibutuhkan. Batasi akses dashboard dan rotasi key bila pernah terekspos.
 6. Pastikan server backend memakai Node.js versi sesuai `package.json`.
@@ -71,7 +69,7 @@ Jika platform hosting mendukung Application Default Credentials/service identity
 ## 5. Environment backend
 
 Salin `.env.example` ke environment lokal/hosting (jangan commit file `.env`). Isi:
-- Firebase project ID dan bucket.
+- Firebase project ID.
 - Kredensial Admin SDK melalui secret manager atau file di luar repository.
 - ImageKit public/private key dan URL endpoint.
 - `ALLOWED_ORIGINS` dengan origin frontend yang benar-benar digunakan.
@@ -80,12 +78,12 @@ Contoh origin:
 - `https://mua-putri.id`
 - `https://www.mua-putri.id`
 
-Jangan menambahkan wildcard `*` pada CORS produksi. Setelah backend deploy, masukkan URL API ke `apiBase` di `public/assets/js/firebase-config.js` (tanpa slash di akhir), lalu deploy ulang Hosting.
+Jangan menambahkan wildcard `*` pada CORS produksi. Setelah backend deploy dan endpoint health berhasil diuji, masukkan URL API ke `apiBase` di `public/assets/js/firebase-config.js` (tanpa slash di akhir), lalu deploy ulang Hosting. Jangan deploy frontend produksi selama `apiBase` masih kosong.
 
 ## 6. Migrasi data dari Firebase lama
 
 1. Jangan hapus atau ubah proyek lama `kolom-komentar-bfa86`.
-2. Inventarisasi koleksi Firestore, pengguna Authentication, file Storage, domain, dan konfigurasi pembayaran.
+2. Inventarisasi koleksi Firestore, pengguna Authentication, media ImageKit/legacy bila ada, domain, dan konfigurasi pembayaran.
 3. Tentukan data yang benar-benar perlu dipindahkan. Jangan menyalin data uji/sampah ke produksi.
 4. Ekspor Firestore lama dan buat backup yang dapat dipulihkan sebelum impor.
 5. Pertahankan UID Firebase Auth jika memungkinkan. Membership, customer profile, booking, order, dan payment merujuk UID; mengganti UID tanpa pemetaan akan memutus relasi.
@@ -97,7 +95,8 @@ Migrasi Firestore lintas project dan Auth user import memerlukan kredensial Admi
 
 ## 7. Checklist verifikasi sebelum produksi
 
-- [ ] Project ID dan bucket cocok dengan proyek target.
+- [ ] Project ID cocok dengan proyek target.
+- [ ] Backend Express memiliki hosting Node.js persisten dan URL HTTPS yang dapat dijangkau.
 - [ ] Anonymous Auth dan Email/Password aktif.
 - [ ] Domain frontend terdaftar di Authorized domains.
 - [ ] Firestore database sudah dibuat pada lokasi yang disetujui.

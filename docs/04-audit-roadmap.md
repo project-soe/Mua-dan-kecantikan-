@@ -1,6 +1,6 @@
 # Audit Struktur & Roadmap Lanjutan
 
-Audit dilakukan pada branch `feature/product-store-checkout` tanggal 2026-11-06 berdasarkan struktur repository, API Express, alur booking/toko, Firestore/Storage Rules, test suite, dan dokumentasi. Audit kode bukan pengganti penetration test atau pengujian browser produksi.
+Audit awal dilakukan pada branch `feature/product-store-checkout` tanggal 2026-11-06 berdasarkan struktur repository, API Express, alur booking/toko, Firestore/Storage Rules, test suite, dan dokumentasi. Audit kode bukan pengganti penetration test atau pengujian browser produksi.
 
 ## Ringkasan kondisi
 
@@ -101,3 +101,15 @@ Fondasi aplikasi sudah terbentuk:
 - Firestore Rules diperketat untuk dokumen `bookings` dan `orders`: role `content_manager` tidak lagi dapat membaca data transaksi staf yang memuat PII.
 - Ditambahkan tes regresi pada `tests/security/firestore.test.js` untuk content_manager, admin, dan finance_manager.
 - Jalankan `npm run test:rules` dan `npm test`/workflow CI sebelum menganggap perubahan keamanan terverifikasi. Jangan deploy Rules ke Firebase produksi sebelum hasil tes hijau.
+
+
+## Update setelah migrasi ImageKit — 2026-11-14
+
+- Commit `e47c04e` menjadikan ImageKit satu-satunya penyimpanan media produksi.
+- Firebase Storage SDK di frontend dan Firebase Admin Storage di backend dilepas; emulator Storage dan Rules tetap ada khusus untuk tes keamanan.
+- Bukti pembayaran menggunakan ImageKit Private Files dan verifikasi metadata berdasarkan file ID, tenant, UID pelanggan, MIME, ukuran, serta status private.
+- QRIS harus berupa URL HTTPS ImageKit pada folder tenant yang sesuai.
+- Pengguna menjalankan `npm run test` setelah pull dan melaporkan seluruh tes lulus.
+- Workflow CI sebelumnya tidak memicu branch `setup/firebase-imagekit-mua-and-beauty`; konfigurasi trigger diperbaiki pada update dokumentasi/CI ini.
+- API Express belum dapat dihubungkan ke frontend produksi karena `apiBase` masih kosong dan penyedia hosting backend persisten belum dipilih.
+- Jangan deploy frontend publik sebelum URL backend ditetapkan, CORS disesuaikan, secret backend diisi, dan health/API smoke test berhasil.
