@@ -11,4 +11,4 @@ export const firebaseConfig = {
 
 // Diisi setelah URL backend Express produksi tersedia.
 // Jangan menaruh slash di akhir URL.
-export const apiBase = '';
+export const apiBase = 'https://mua-putri-api.onrender.com';
