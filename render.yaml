@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: mua-putri-api
+    runtime: node
+    plan: free
+    region: singapore
+    branch: setup/firebase-imagekit-mua-and-beauty
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FIREBASE_PROJECT_ID
+        value: mua-and-beauty
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/firebase-admin.json
+      - key: ALLOWED_ORIGINS
+        value: https://mua-putri.id,https://www.mua-putri.id
+      - key: EXPIRY_SWEEP_INTERVAL_MS
+        value: "60000"
+      - key: IMAGEKIT_PUBLIC_KEY
+        sync: false
+      - key: IMAGEKIT_PRIVATE_KEY
+        sync: false
+      - key: IMAGEKIT_URL_ENDPOINT
+        sync: false
