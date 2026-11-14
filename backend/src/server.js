@@ -1,6 +1,5 @@
 import { createApp } from './app.js';
 import { db, auth } from './firebase.js';
-import { proofInfo as firebaseProofInfo } from './storage.js';
 import { config } from './config.js';
 import { createExpiryWorker } from './maintenance/expiry-worker.js';
 import { createUploadAuth, createSignedMediaUrl } from './media/imagekit.js';
@@ -12,7 +11,7 @@ const createMediaAuth = createUploadAuth({
   urlEndpoint: config.imageKitUrlEndpoint,
 });
 const imageKitProofInfo = createImageKitProofInfo({ privateKey: config.imageKitPrivateKey });
-const proofInfo = (input) => (typeof input === 'string' ? firebaseProofInfo(input) : imageKitProofInfo(input));
+const proofInfo = imageKitProofInfo;
 const createSignedUrl = createSignedMediaUrl({ privateKey: config.imageKitPrivateKey, urlEndpoint: config.imageKitUrlEndpoint });
 const server = createApp({ db, auth, proofInfo, createMediaAuth, createSignedUrl, allowedOrigins: config.allowedOrigins }).listen(config.port, () => {
   console.log(`Backend berjalan di port ${config.port}`);

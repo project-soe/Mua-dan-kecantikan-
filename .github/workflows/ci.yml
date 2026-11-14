@@ -6,6 +6,7 @@ on:
       - main
       - feature/product-store-checkout
       - feature/imagekit-media-storage
+      - setup/firebase-imagekit-mua-and-beauty
   pull_request:
     branches:
       - main
