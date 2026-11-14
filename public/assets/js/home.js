@@ -156,8 +156,18 @@ async function main() {
     return fatal('Tidak dapat memuat situs', 'Data belum dapat dimuat. Periksa koneksi lalu muat ulang halaman.');
   }
   if (!tenant) {
+    const debug = new URLSearchParams(location.search).get('debug') === '1';
+    if (debug) {
+      console.warn('[Mua Putri tenant diagnostic]', {
+        hostname: location.hostname,
+        firebaseProjectId: db.app.options.projectId,
+        reason: diag.reason || 'Tidak ada alasan diagnostik yang tercatat.',
+      });
+    }
     return fatal('Situs tidak ditemukan',
-      'Alamat ini belum terhubung ke situs mana pun.' + (isLocal && diag.reason ? ` [dev: ${diag.reason}]` : ''));
+      'Alamat ini belum terhubung ke situs mana pun.' +
+      (debug && diag.reason ? ` [debug: ${diag.reason}]` : '') +
+      (isLocal && diag.reason ? ` [dev: ${diag.reason}]` : ''));
   }
 
   applyTheme(tenant.theme);
