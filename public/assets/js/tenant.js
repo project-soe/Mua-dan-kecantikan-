@@ -2,6 +2,14 @@ import { db, doc, getDoc } from './firebase.js';
 import { isLocal } from './env.js';
 
 const ID_RE = /^[a-z0-9][a-z0-9-]{1,40}$/;
+// Firestore document IDs may contain more than lowercase letters and hyphens.
+// Only reject values that cannot safely identify one document path segment.
+const isValidTenantId = (value) => typeof value === 'string'
+  && value.length > 0
+  && value.length <= 1500
+  && value === value.trim()
+  && !value.includes('/')
+  && !/[\\u0000-\\u001f\\u007f]/.test(value);
 export const diag = { reason: '', stage: '', code: '', projectId: '', databaseId: '(default)' };
 
 // Domain -> tenant. Domain hanya identitas; hak akses tetap diatur Rules/backend.
