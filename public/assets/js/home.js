@@ -152,8 +152,20 @@ async function main() {
   let tenant;
   try { tenant = await resolveTenant(); }
   catch (e) {
-    console.error(e);
-    return fatal('Tidak dapat memuat situs', 'Data belum dapat dimuat. Periksa koneksi lalu muat ulang halaman.');
+    console.error('[Mua Putri tenant resolution failure]', {
+      hostname: location.hostname,
+      firebaseProjectId: db.app.options.projectId,
+      databaseId: '(default)',
+      stage: diag.stage || 'initialization',
+      code: e?.code ?? diag.code ?? 'unknown',
+      message: e?.message ?? String(e),
+      reason: diag.reason || 'Tidak ada detail tambahan.',
+      error: e,
+    });
+    const debug = new URLSearchParams(location.search).get('debug') === '1';
+    return fatal('Tidak dapat memuat situs',
+      'Data situs gagal dimuat. ' +
+      (debug ? `[debug: tahap=${diag.stage || 'initialization'}; kode=${e?.code ?? diag.code ?? 'unknown'}; detail=${diag.reason || e?.message || String(e)}]` : 'Silakan muat ulang beberapa saat lagi.'));
   }
   if (!tenant) {
     const debug = new URLSearchParams(location.search).get('debug') === '1';
