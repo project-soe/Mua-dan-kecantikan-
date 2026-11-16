@@ -39,8 +39,8 @@ export async function resolveTenant() {
         diag.reason = `Domain ${domain} memiliki status tidak aktif: ${String(data.status)}.`;
         return null;
       }
-      if (typeof data.tenantId !== 'string' || !ID_RE.test(data.tenantId)) {
-        diag.reason = `Field tenantId pada platformDomains/${domain} tidak valid.`;
+      if (!isValidTenantId(data.tenantId)) {
+        diag.reason = `Field tenantId tidak valid pada platformDomains/${domain}: type=${typeof data.tenantId}, value=${JSON.stringify(data.tenantId)}.`;
         return null;
       }
       tenantId = data.tenantId;
