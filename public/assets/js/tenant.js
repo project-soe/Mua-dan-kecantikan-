@@ -9,7 +9,7 @@ const isValidTenantId = (value) => typeof value === 'string'
   && value.length <= 1500
   && value === value.trim()
   && !value.includes('/')
-  && !/[\\u0000-\\u001f\\u007f]/.test(value);
+  && !/[\u0000-\u001f\u007f]/.test(value);
 export const diag = { reason: '', stage: '', code: '', projectId: '', databaseId: '(default)' };
 
 // Domain -> tenant. Domain hanya identitas; hak akses tetap diatur Rules/backend.
