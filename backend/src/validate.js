@@ -47,7 +47,7 @@ function hasOnlyImageKitUpdatedAt(url) {
   return entries.length === 0 || (
     entries.length === 1
     && entries[0][0] === 'updatedAt'
-    && /^\\d{1,16}$/.test(entries[0][1])
+    && /^\d{1,16}$/.test(entries[0][1])
   );
 }
 export function storagePath(v, name, prefix, { optional = false } = {}) {
