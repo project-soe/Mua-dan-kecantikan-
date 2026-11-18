@@ -53,13 +53,13 @@ export function storagePath(v, name, prefix, { optional = false } = {}) {
     try {
       const endpoint = new URL(config.imageKitUrlEndpoint);
       const url = new URL(s);
-      const basePath = endpoint.pathname.replace(/\\/+$/, '');
-      const expectedPath = `${basePath}/${prefix}`;
+      const basePath = endpoint.pathname.replace(/\/+$/, '');
+      const expectedPath = \`${basePath}/${prefix}\`;
       if (url.protocol === 'https:' && url.origin === endpoint.origin
         && !url.username && !url.password
         && url.pathname.startsWith(expectedPath)
         && !url.pathname.includes('..') && !url.pathname.includes('%')
-        && !url.pathname.includes('\\\\')
+        && !url.pathname.includes('\\')
         && !url.search && !url.hash) return s;
     } catch { /* ditolak di bawah */ }
   }
