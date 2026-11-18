@@ -39,21 +39,27 @@ export function httpsUrl(v, name, { optional = false, max = 500 } = {}) {
   if (u.protocol !== 'https:') throw bad(`${name} harus memakai https`);
   return s;
 }
-const PATH_RE = /^[A-Za-z0-9._\/-]+$/;
+const PATH_RE = /^[A-Za-z0-9._\\/-]+$/;
 export function storagePath(v, name, prefix, { optional = false } = {}) {
   const s = str(v, name, { min: 1, max: 1000, optional });
   if (s === undefined) return undefined;
   if (s.startsWith(prefix) && !s.includes('..') && PATH_RE.test(s)) return s;
-  // ImageKit URL hanya diterima bila origin tepat sama dengan endpoint milik proyek
-  // dan path tetap berada di folder tenant/area yang diminta handler.
+
+  // ImageKit URL dapat menyertakan base path pada URL endpoint, misalnya
+  // https://ik.imagekit.io/<imagekit-id>/tenants/<tenant>/<area>/file.webp.
+  // Validasi harus membandingkan path setelah base path endpoint, bukan
+  // mengharuskan folder tenant berada tepat setelah hostname.
   if (config.imageKitUrlEndpoint) {
     try {
       const endpoint = new URL(config.imageKitUrlEndpoint);
       const url = new URL(s);
-      const expectedPath = `/${prefix}`;
+      const basePath = endpoint.pathname.replace(/\\/+$/, '');
+      const expectedPath = `${basePath}/${prefix}`;
       if (url.protocol === 'https:' && url.origin === endpoint.origin
-        && url.pathname.startsWith(expectedPath) && !url.pathname.includes('..')
-        && !url.pathname.includes('%') && !url.pathname.includes('\\\\')
+        && !url.username && !url.password
+        && url.pathname.startsWith(expectedPath)
+        && !url.pathname.includes('..') && !url.pathname.includes('%')
+        && !url.pathname.includes('\\\\')
         && !url.search && !url.hash) return s;
     } catch { /* ditolak di bawah */ }
   }
@@ -66,7 +72,7 @@ export function imageKitUrl(v, name, prefix, { optional = false } = {}) {
   try {
     const endpoint = new URL(config.imageKitUrlEndpoint);
     const url = new URL(s);
-    const base = endpoint.pathname.replace(/\/$/, '');
+    const base = endpoint.pathname.replace(/\\/$/, '');
     if (url.protocol === 'https:' && url.origin === endpoint.origin
       && url.pathname.startsWith(`${base}${prefix}`) && !url.pathname.includes('..')
       && !url.pathname.includes('%') && !url.username && !url.password && !url.search && !url.hash) return s;
@@ -83,7 +89,7 @@ export function idOf(v, name) {
   return v;
 }
 export function slugify(s) {
-  const out = String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+  const out = String(s).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
   return out || 'item';
 }
