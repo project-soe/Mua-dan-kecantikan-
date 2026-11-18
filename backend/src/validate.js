@@ -99,7 +99,7 @@ export function idOf(v, name) {
   return v;
 }
 export function slugify(s) {
-  const out = String(s).toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '')
+  const out = String(s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
   return out || 'item';
 }
