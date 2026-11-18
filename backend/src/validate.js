@@ -82,7 +82,7 @@ export function imageKitUrl(v, name, prefix, { optional = false } = {}) {
   try {
     const endpoint = new URL(config.imageKitUrlEndpoint);
     const url = new URL(s);
-    const base = endpoint.pathname.replace(/\\/$/, '');
+    const base = endpoint.pathname.replace(/\/$/, '');
     if (url.protocol === 'https:' && url.origin === endpoint.origin
       && url.pathname.startsWith(`${base}${prefix}`) && !url.pathname.includes('..')
       && !url.pathname.includes('%') && !url.username && !url.password && hasOnlyImageKitUpdatedAt(url) && !url.hash) return s;
