@@ -10,6 +10,7 @@ on:
   pull_request:
     branches:
       - main
+      - setup/firebase-imagekit-mua-and-beauty
 
 permissions:
   contents: read
