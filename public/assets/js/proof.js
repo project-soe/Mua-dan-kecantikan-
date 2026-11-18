@@ -17,10 +17,3 @@ export function validateProofFile(file) {
   return '';
 }
 
-export function proofPath(tenantId, uid, type, id) {
-  if (!Object.hasOwn(EXT, type)) {
-    throw new Error('Tipe file bukti pembayaran tidak didukung.');
-  }
-
-  return `tenants/${tenantId}/payment-proofs/${uid}/${id}.${EXT[type]}`;
-}

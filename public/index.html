@@ -11,6 +11,16 @@
   <link rel="stylesheet" href="/assets/css/tokens.css">
   <link rel="stylesheet" href="/assets/css/base.css">
   <link rel="stylesheet" href="/assets/css/home.css">
+  <script>
+    // Temporary mobile diagnostics. Eruda loads only when explicitly requested with ?debug=1.
+    if (new URLSearchParams(location.search).get('debug') === '1') {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/eruda@3.4.3/eruda.min.js';
+      script.onload = () => window.eruda?.init();
+      script.onerror = () => console.error('Eruda gagal dimuat dari CDN.');
+      document.head.appendChild(script);
+    }
+  </script>
 </head>
 <body>
   <a class="skip-link" href="#main">Lewati ke konten</a>

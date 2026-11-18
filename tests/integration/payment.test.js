@@ -2,8 +2,7 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { getApps } from 'firebase-admin/app';
 import { FieldValue } from 'firebase-admin/firestore';
-import { db, auth, bucket } from '../../backend/src/firebase.js';
-import { proofInfo } from '../../backend/src/storage.js';
+import { db, auth } from '../../backend/src/firebase.js';
 import { createApp } from '../../backend/src/app.js';
 import { makeUser, caller } from './helpers.js';
 
@@ -14,6 +13,9 @@ const NOW = Date.UTC(2030, 0, 1, 1, 0); // 2030-01-01 08:00 WIB (Selasa)
 let nowMs = NOW;
 let server, base, seq = 0;
 const call = caller(() => base);
+const imageKitFiles = new Map();
+let proofSeq = 0;
+const proofInfo = async ({ fileId, tenantId, userId }) => { const x = imageKitFiles.get(fileId); return x && x.tenantId === tenantId && x.userId === userId && x.private ? x : null; };
 const doc = (p) => db.doc(p);
 const getB = async (id) => (await doc(`tenants/${T}/bookings/${id}`).get()).data();
 const getP = async (id) => (await doc(`tenants/${T}/payments/${id}`).get()).data();
@@ -31,12 +33,12 @@ const mk = async (user, date, startTime = '09:00', svc = 'svcA') => {
   return r.body.data.bookingId;
 };
 const putProof = async (uid, name, { size = 2000, contentType = 'image/png', tenant = T } = {}) => {
-  const path = `tenants/${tenant}/payment-proofs/${uid}/${name}`;
-  await bucket().file(path).save(Buffer.alloc(size, 1), { contentType });
-  return path;
+  const fileId = `ik_test_${++proofSeq}`;
+  imageKitFiles.set(fileId, { fileId, tenantId: tenant, userId: uid, filePath: `/tenants/${tenant}/payment-proofs/${uid}/${name}`, size, contentType, private: true });
+  return fileId;
 };
 const payBody = (bookingId, proof, o = {}) => ({
-  tenantId: T, bookingId, paymentMethod: 'bank_transfer', proofStoragePath: proof, amount: 100000, ...o,
+  tenantId: T, bookingId, paymentMethod: 'bank_transfer', proofFileId: proof, amount: 100000, ...o,
 });
 const submit = async (user, bookingId, name, amount = 100000) => {
   const proof = await putProof(user, name);
@@ -112,7 +114,7 @@ describe('pengaturan pembayaran', () => {
       settingsBody({ methods: [m({ bankName: undefined })] }),
       settingsBody({ methods: [{ method: 'qris', enabled: true, accountName: 'Putri Salon' }] }),
       settingsBody({ methods: [m(), m()] }),
-      settingsBody({ methods: [{ method: 'qris', enabled: true, accountName: 'Putri Salon', qrImage: `tenants/${T2}/payment-methods/q.png` }] }),
+      settingsBody({ methods: [{ method: 'qris', enabled: true, accountName: 'Putri Salon', qrImage: `https://ik.imagekit.io/test/tenants/${T2}/payment-methods/q.png` }] }),
       settingsBody({ methods: [m({ accountNumber: 'abc123' })] }),
       settingsBody({ methods: [] }),
       settingsBody({ methods: [m({ method: 'paypal' })] }),
@@ -125,7 +127,7 @@ describe('pengaturan pembayaran', () => {
   });
   it('QRIS aktif dengan gambar dari folder tenant sendiri berhasil', async () => {
     const r = await call('updatePaymentSettings', settingsBody({
-      methods: [{ method: 'qris', enabled: true, accountName: 'Putri Salon', qrImage: `tenants/${T}/payment-methods/qris.png` }],
+      methods: [{ method: 'qris', enabled: true, accountName: 'Putri Salon', qrImage: `https://ik.imagekit.io/test/tenants/${T}/payment-methods/qris.png` }],
     }), 'fFinance');
     assert.equal(r.status, 200, JSON.stringify(r.body));
     assert.deepEqual(r.body.data.enabledMethods, ['qris']);
@@ -191,19 +193,15 @@ describe('submitPaymentProof', () => {
     assert.equal((await call('submitPaymentProof', payBody(b2, p2ok, { paymentMethod: 'paypal' }), 'fC2')).status, 400);
   });
   it('file bukti bermasalah -> 400', async () => {
-    const proofs = [
-      p1a, // milik pengguna lain
-      `tenants/${T}/payment-proofs/fC2/tidak-ada.png`,
-      p2pdf, p2big,
-      `tenants/${T2}/payment-proofs/fC2/x.png`,
-    ];
+    const wrongTenant = await putProof('fC2', 'x.png', { tenant: T2 });
+    const proofs = [p1a, 'ik_test_missing', p2pdf, p2big, wrongTenant];
     for (const p of proofs) {
       const r = await call('submitPaymentProof', payBody(b2, p), 'fC2');
       assert.equal(r.status, 400, p + ' -> ' + JSON.stringify(r.body));
     }
   });
   it('order tidak ditemukan 404; bookingId+orderId 400; field asing 400; tanpa login 401', async () => {
-    const o = { tenantId: T, orderId: 'abc', paymentMethod: 'bank_transfer', proofStoragePath: p2ok, amount: 100000 };
+    const o = { tenantId: T, orderId: 'abc', paymentMethod: 'bank_transfer', proofFileId: p2ok, amount: 100000 };
     assert.equal((await call('submitPaymentProof', o, 'fC2')).status, 404);
     assert.equal((await call('submitPaymentProof', payBody(b2, p2ok, { orderId: 'abc' }), 'fC2')).status, 400);
     assert.equal((await call('submitPaymentProof', payBody(b2, p2ok, { totalAmount: 1 }), 'fC2')).status, 400);
@@ -228,7 +226,9 @@ describe('submitPaymentProof', () => {
     assert.equal(p.amount, 100000);
     assert.equal(p.purpose, 'deposit');
     assert.equal(p.verifiedBy, null);
-    assert.equal(p.proofImagePath, p1a);
+    assert.equal(p.proofImagePath, imageKitFiles.get(p1a).filePath);
+    assert.equal(p.proofImageFileId, p1a);
+    assert.equal(p.proofStorageProvider, 'imagekit');
   });
   it('kirim ulang yang sama -> hasil sama; file lain saat menunggu -> 409; file dipakai ulang -> 409', async () => {
     const again = await call('submitPaymentProof', payBody(b1, p1a), 'fC1');

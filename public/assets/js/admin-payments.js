@@ -1,5 +1,5 @@
 import {
-  adminDb, adminStorage, collection, doc, getDoc, getDocs, query, orderBy, limit, ref, getDownloadURL,
+  adminDb, collection, doc, getDoc, getDocs, query, orderBy, limit,
 } from './admin-firebase.js';
 import { adminCall } from './admin-api.js';
 import { h } from './dom.js';
@@ -61,7 +61,7 @@ export async function mountPayments(root, ctx) {
         const data = await adminCall('getPaymentProofUrl', { tenantId: ctx.tenant.id, paymentId: p.id });
         await showImage('Bukti pembayaran', data.url);
       } else {
-        await showImage('Bukti pembayaran', await getDownloadURL(ref(adminStorage, p.proofImagePath)));
+        throw new Error('Bukti ini berasal dari penyimpanan lama dan tidak tersedia melalui ImageKit.');
       }
     } catch (e) { console.error(e); toast('Bukti tidak dapat dimuat.'); }
   }

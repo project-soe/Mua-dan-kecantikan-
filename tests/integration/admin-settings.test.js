@@ -52,13 +52,38 @@ describe('gambar dan label brand', () => {
     assert.equal(pub.legalName, undefined);
     assert.equal((await doc(`tenants/${T}/profile/business`).get()).data().legalName, 'PT Rahasia');
   });
+  it('menerima URL ImageKit dengan base path endpoint dan tetap memproyeksikannya ke tenant publik', async () => {
+    const logo = `https://ik.imagekit.io/test/tenants/${T}/branding/logo.webp?updatedAt=1794977783262`;
+    const hero = `https://ik.imagekit.io/test/tenants/${T}/branding/hero.webp`;
+    const favicon = `https://ik.imagekit.io/test/tenants/${T}/branding/favicon.webp`;
+    const r = await call('updateBrandProfile', {
+      tenantId: T, logoImage: logo, brandImage: hero, faviconImage: favicon,
+    }, 'hOwner');
+    assert.equal(r.status, 200, JSON.stringify(r.body));
+    const pub = (await doc(`publicTenants/${T}`).get()).data();
+    assert.equal(pub.logoImage, logo);
+    assert.equal(pub.brandImage, hero);
+    assert.equal(pub.faviconImage, favicon);
+  });
+  it('menolak query parameter ImageKit selain updatedAt numerik', async () => {
+    const invalid = [
+      `https://ik.imagekit.io/test/tenants/${T}/branding/logo.webp?token=secret`,
+      `https://ik.imagekit.io/test/tenants/${T}/branding/logo.webp?updatedAt=abc`,
+      `https://ik.imagekit.io/test/tenants/${T}/branding/logo.webp?updatedAt=1&updatedAt=2`,
+    ];
+    for (const logoImage of invalid) {
+      const r = await call('updateBrandProfile', { tenantId: T, logoImage }, 'hOwner');
+      assert.equal(r.status, 400, logoImage);
+    }
+  });
   it('admin boleh; content manager dan owner tenant lain ditolak', async () => {
     assert.equal((await call('updateBrandProfile', { tenantId: T, tagline: 'Baru' }, 'hAdmin')).status, 200);
     assert.equal((await call('updateBrandProfile', { tenantId: T, tagline: 'X' }, 'hContent')).status, 403);
     assert.equal((await call('updateBrandProfile', { tenantId: T, tagline: 'X' }, 'hOwner2')).status, 403);
   });
   it('path di luar folder branding tenant sendiri atau traversal ditolak', async () => {
-    for (const p of [`tenants/${T2}/branding/x.webp`, `tenants/${T}/products/x.webp`, `tenants/${T}/branding/../x.webp`, 'https://jahat.example/x.png']) {
+    for (const p of [`tenants/${T2}/branding/x.webp`, `tenants/${T}/products/x.webp`, `tenants/${T}/branding/../x.webp`, 'https://jahat.example/x.png',
+      `https://ik.imagekit.io/test/tenants/${T2}/branding/x.webp`]) {
       const r = await call('updateBrandProfile', { tenantId: T, logoImage: p }, 'hOwner');
       assert.equal(r.status, 400, p);
     }

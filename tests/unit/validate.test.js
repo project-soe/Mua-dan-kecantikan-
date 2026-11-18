@@ -7,6 +7,8 @@ const invalid = (e) => e.code === 'invalid-argument';
 test('slugify', () => {
   assert.equal(slugify('Lipstik Rosé Matte!'), 'lipstik-rose-matte');
   assert.equal(slugify('!!!'), 'item');
+  assert.equal(slugify('SKU-ABC123-2'), 'sku-abc123-2');
+  assert.notEqual(slugify('SKU-ABC123-2'), slugify('SKU-ABC123-3'));
 });
 test('int menolak desimal, negatif, dan non-angka', () => {
   assert.equal(int(5, 'x'), 5);

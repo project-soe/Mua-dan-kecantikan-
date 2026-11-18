@@ -1,7 +1,7 @@
 import { h } from './dom.js';
 import { call, ApiError } from './api.js';
 import { ensureUser } from './auth.js';
-import { auth, storage, ref, getDownloadURL } from './firebase.js';
+import { auth } from './firebase.js';
 import { validateProofFile } from './proof.js';
 import { rupiah } from './format.js';
 
@@ -91,9 +91,7 @@ function paymentDetails(method) {
     const qr = h('p', { class: 'meta', text: 'Memuat kode QRIS…' });
     box.append(qr);
 
-    const qrUrl = /^https:\/\//i.test(method.qrImage)
-      ? Promise.resolve(method.qrImage)
-      : getDownloadURL(ref(storage, method.qrImage));
+    const qrUrl = /^https:\/\//i.test(method.qrImage) ? Promise.resolve(method.qrImage) : Promise.reject(new Error('URL QRIS tidak valid'));
     qrUrl.then((url) => {
         qr.replaceWith(h('img', {
           class: 'qr',

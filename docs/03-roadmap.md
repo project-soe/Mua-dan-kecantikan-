@@ -15,7 +15,7 @@
 
 ## Risiko
 - RAM proot terbatas (emulator berat): jalankan satu per satu.
-- Hosting backend gratis yang selalu hidup belum dipilih.
-- Storage produksi gratis belum dipilih.
+- Hosting backend Node.js persisten belum dipilih; API Express dan expiry worker memerlukan proses backend aktif.
+- ImageKit telah dipilih sebagai satu-satunya penyimpanan media produksi; kuota dan retensi perlu dipantau.
 - Banyak custom domain per tenant butuh pengaturan DNS/hosting manual.
 - Foto model butuh izin tertulis (consentStatus).
