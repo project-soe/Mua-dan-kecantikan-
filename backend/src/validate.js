@@ -40,6 +40,16 @@ export function httpsUrl(v, name, { optional = false, max = 500 } = {}) {
   return s;
 }
 const PATH_RE = /^[A-Za-z0-9._\\/-]+$/;
+// ImageKit menambahkan updatedAt sebagai cache-busting query parameter.
+// Hanya satu parameter numerik ini yang diizinkan; parameter lain tetap ditolak.
+function hasOnlyImageKitUpdatedAt(url) {
+  const entries = [...url.searchParams.entries()];
+  return entries.length === 0 || (
+    entries.length === 1
+    && entries[0][0] === 'updatedAt'
+    && /^\d{1,16}$/.test(entries[0][1])
+  );
+}
 export function storagePath(v, name, prefix, { optional = false } = {}) {
   const s = str(v, name, { min: 1, max: 1000, optional });
   if (s === undefined) return undefined;
@@ -60,7 +70,7 @@ export function storagePath(v, name, prefix, { optional = false } = {}) {
         && url.pathname.startsWith(expectedPath)
         && !url.pathname.includes('..') && !url.pathname.includes('%')
         && !url.pathname.includes('\\')
-        && !url.search && !url.hash) return s;
+        && hasOnlyImageKitUpdatedAt(url) && !url.hash) return s;
     } catch { /* ditolak di bawah */ }
   }
   throw bad(`${name} harus berada di ${prefix} atau URL ImageKit tenant yang sesuai`);
@@ -75,7 +85,7 @@ export function imageKitUrl(v, name, prefix, { optional = false } = {}) {
     const base = endpoint.pathname.replace(/\\/$/, '');
     if (url.protocol === 'https:' && url.origin === endpoint.origin
       && url.pathname.startsWith(`${base}${prefix}`) && !url.pathname.includes('..')
-      && !url.pathname.includes('%') && !url.username && !url.password && !url.search && !url.hash) return s;
+      && !url.pathname.includes('%') && !url.username && !url.password && hasOnlyImageKitUpdatedAt(url) && !url.hash) return s;
   } catch { /* ditolak */ }
   throw bad(`${name} harus berupa URL ImageKit di folder tenant yang sesuai`);
 }
