@@ -54,7 +54,7 @@ export function storagePath(v, name, prefix, { optional = false } = {}) {
       const endpoint = new URL(config.imageKitUrlEndpoint);
       const url = new URL(s);
       const basePath = endpoint.pathname.replace(/\/+$/, '');
-      const expectedPath = \`${basePath}/${prefix}\`;
+      const expectedPath = basePath + '/' + prefix;
       if (url.protocol === 'https:' && url.origin === endpoint.origin
         && !url.username && !url.password
         && url.pathname.startsWith(expectedPath)
