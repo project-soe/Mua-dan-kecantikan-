@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: mua-putri-api
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: GCLOUD_PROJECT
+        value: kolom-komentar-bfa86
+      - key: FIREBASE_PROJECT_ID
+        value: kolom-komentar-bfa86
+      - key: STORAGE_BUCKET
+        value: kolom-komentar-bfa86.firebasestorage.app
+      - key: GOOGLE_APPLICATION_CREDENTIALS
+        value: /etc/secrets/firebase-admin.json
+      - key: ALLOWED_ORIGINS
+        value: https://mua-putri.id,https://www.mua-putri.id
+      - key: IMAGEKIT_PUBLIC_KEY
+        sync: false
+      - key: IMAGEKIT_PRIVATE_KEY
+        sync: false
+      - key: IMAGEKIT_URL_ENDPOINT
+        sync: false

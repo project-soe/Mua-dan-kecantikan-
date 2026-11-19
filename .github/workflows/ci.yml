@@ -6,9 +6,11 @@ on:
       - main
       - feature/product-store-checkout
       - feature/imagekit-media-storage
+      - fix/render-imagekit-storagepath
   pull_request:
     branches:
       - main
+      - deploy/render-free
 
 permissions:
   contents: read
