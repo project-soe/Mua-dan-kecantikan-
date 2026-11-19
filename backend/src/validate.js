@@ -39,25 +39,55 @@ export function httpsUrl(v, name, { optional = false, max = 500 } = {}) {
   if (u.protocol !== 'https:') throw bad(`${name} harus memakai https`);
   return s;
 }
-const PATH_RE = /^[A-Za-z0-9._\/-]+$/;
+const PATH_RE = /^[A-Za-z0-9._\\/-]+$/;
+// ImageKit menambahkan updatedAt sebagai cache-busting query parameter.
+// Hanya satu parameter numerik ini yang diizinkan; parameter lain tetap ditolak.
+function hasOnlyImageKitUpdatedAt(url) {
+  const entries = [...url.searchParams.entries()];
+  return entries.length === 0 || (
+    entries.length === 1
+    && entries[0][0] === 'updatedAt'
+    && /^\d{1,16}$/.test(entries[0][1])
+  );
+}
 export function storagePath(v, name, prefix, { optional = false } = {}) {
   const s = str(v, name, { min: 1, max: 1000, optional });
   if (s === undefined) return undefined;
   if (s.startsWith(prefix) && !s.includes('..') && PATH_RE.test(s)) return s;
-  // ImageKit URL hanya diterima bila origin tepat sama dengan endpoint milik proyek
-  // dan path tetap berada di folder tenant/area yang diminta handler.
+
+  // ImageKit URL dapat menyertakan base path pada URL endpoint, misalnya
+  // https://ik.imagekit.io/<imagekit-id>/tenants/<tenant>/<area>/file.webp.
+  // Validasi harus membandingkan path setelah base path endpoint, bukan
+  // mengharuskan folder tenant berada tepat setelah hostname.
   if (config.imageKitUrlEndpoint) {
     try {
       const endpoint = new URL(config.imageKitUrlEndpoint);
       const url = new URL(s);
-      const expectedPath = `/${prefix}`;
+      const basePath = endpoint.pathname.replace(/\/+$/, '');
+      const expectedPath = basePath + '/' + prefix;
       if (url.protocol === 'https:' && url.origin === endpoint.origin
-        && url.pathname.startsWith(expectedPath) && !url.pathname.includes('..')
-        && !url.pathname.includes('%') && !url.pathname.includes('\\\\')
-        && !url.search && !url.hash) return s;
+        && !url.username && !url.password
+        && url.pathname.startsWith(expectedPath)
+        && !url.pathname.includes('..') && !url.pathname.includes('%')
+        && !url.pathname.includes('\\')
+        && hasOnlyImageKitUpdatedAt(url) && !url.hash) return s;
     } catch { /* ditolak di bawah */ }
   }
   throw bad(`${name} harus berada di ${prefix} atau URL ImageKit tenant yang sesuai`);
+}
+export function imageKitUrl(v, name, prefix, { optional = false } = {}) {
+  const s = str(v, name, { min: 1, max: 1000, optional });
+  if (s === undefined) return undefined;
+  if (!config.imageKitUrlEndpoint) throw bad(`${name} tidak dapat diverifikasi karena endpoint ImageKit belum dikonfigurasi`);
+  try {
+    const endpoint = new URL(config.imageKitUrlEndpoint);
+    const url = new URL(s);
+    const base = endpoint.pathname.replace(/\/$/, '');
+    if (url.protocol === 'https:' && url.origin === endpoint.origin
+      && url.pathname.startsWith(`${base}${prefix}`) && !url.pathname.includes('..')
+      && !url.pathname.includes('%') && !url.username && !url.password && hasOnlyImageKitUpdatedAt(url) && !url.hash) return s;
+  } catch { /* ditolak */ }
+  throw bad(`${name} harus berupa URL ImageKit di folder tenant yang sesuai`);
 }
 export function storagePaths(v, name, prefix, { max = 12, optional = false } = {}) {
   if (missing(v)) { if (optional) return undefined; throw bad(`${name} wajib diisi`); }
